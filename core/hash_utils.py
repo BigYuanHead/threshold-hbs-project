@@ -1,34 +1,30 @@
 import hashlib
 
 # Hash function using SHA-256
-def H(data: bytes) -> bytes:
-    return hashlib.sha256(data).digest()
+def hash_sha256(data: bytes) -> bytes:
+    # error check
+    if not isinstance(data, bytes):
+        raise TypeError("Input must be bytes")
+    h = hashlib.sha256(data).digest()
+    return h
 
 # XOR two byte strings
-def xor_bytes(a: bytes, b: bytes) -> bytes:
-    return bytes(x ^ y for x, y in zip(a, b))
+def xor_calculator(a: bytes, b: bytes) -> bytes:
+    # error check
+    if not isinstance(a, bytes) or not isinstance(b, bytes):
+        raise TypeError("Input must be bytes")
+    if len(a) != len(b):
+        raise ValueError("Input must be same length")
+    xor = bytes(x ^ y for x, y in zip(a, b))
+    return xor
 
 # Convert a hash digest to a list of bits
-def digest_to_bits(data: bytes) -> list[int]:
-    digest = H(data)
+def bits_converter(data: bytes) -> list[int]:
+    # error check
+    if not isinstance(data, bytes):
+        raise TypeError("Input must be bytes")
+    digest = hash_sha256(data)
     bits = "".join(f"{byte:08b}" for byte in digest)
-    return [int(bit) for bit in bits]
+    list_bits = [int(bit) for bit in bits]
+    return list_bits
 
-# Test the functions
-'''
-if __name__ == "__main__":
-    print("Testing hash_utils.py...")
-
-    h = H(b"hello")
-    print("H(b'hello') length:", len(h))
-    print("H(b'hello'):", h.hex())
-
-    x = xor_bytes(b"\x01\x02", b"\x03\x04")
-    print("xor_bytes result:", x)
-
-    bits = digest_to_bits(b"hello")
-    print("digest_to_bits length:", len(bits))
-    print("first 16 bits:", bits[:16])
-
-    print("Done.")
-'''

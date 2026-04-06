@@ -1,12 +1,12 @@
-from .hash_utils import H, xor_bytes, digest_to_bits
+from .hash_utils import hash_sha256, xor_calculator, bits_converter
 from .lamport_ots import LamportOTS
 from .merkle import MerkleTree
-from .stateful_hbs import StatefulHBS
+from .baseline import StatefulHBS
 
 __all__ = [
-    "H",
-    "xor_bytes",
-    "digest_to_bits",
+    "hash_sha256",
+    "xor_calculator",
+    "bits_converter",
     "LamportOTS",
     "MerkleTree",
     "StatefulHBS",
