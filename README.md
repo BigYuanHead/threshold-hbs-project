@@ -53,12 +53,13 @@ project/
 │   ├── bench_sign.py
 │   ├── bench_verify.py
 │   └── bench_scaling.py
-├── tests/
+├── test/
 │   ├── test_lamport.py
 │   ├── test_share.py
 │   ├── test_signing.py
 │   ├── test_verification.py
-│   └── test_end_to_end.py
+│   ├── test_end_to_end.py
+│   └── test_threshold_end_to_end.py
 └── results/
 ```
 ---
@@ -103,3 +104,68 @@ At this stage, the core baseline modules have been implemented:
   - wrong signature failure
   - Merkle path verification
   - stateful key reuse rejection
+
+The minimal threshold HBS workflow has also been implemented as an n-of-n scheme:
+
+- `protocol/setup.py`  
+  Completed threshold setup and key sharing:
+  - Lamport private key generation through the existing core module
+  - XOR additive sharing of Lamport secret values
+  - Merkle root construction over Lamport public keys
+  - public parameter and party share bundle generation
+
+- `protocol/signing.py`  
+  Completed signature share generation:
+  - message hash bit conversion
+  - per-bit selection of zero/one key shares
+  - signature share output for each party
+
+- `protocol/combine.py`  
+  Completed signature share combination:
+  - validation of signature share structure
+  - XOR combination of all party shares
+  - reconstruction of a standard Lamport signature
+
+- `protocol/verify.py`  
+  Completed independent threshold signature verification:
+  - Lamport signature verification
+  - public key Merkle authentication path verification
+  - verification using only the message, signed data, and public root
+
+- `entities/trusted_server.py`  
+  Completed trusted dealer role:
+  - threshold key material setup
+  - public parameter generation
+  - party share distribution
+
+- `entities/party.py`  
+  Completed party signing role:
+  - local storage of key shares
+  - signature share generation
+  - key reuse prevention
+  - refusal response support
+
+- `entities/untrusted_server.py`  
+  Completed untrusted aggregator role:
+  - request signing shares from all parties
+  - reject incomplete signing attempts
+  - combine accepted shares into a final signature
+
+- `entities/verifier.py`  
+  Completed verifier role:
+  - public root based verification
+  - wrapper around the threshold verification protocol
+
+- `main.py`  
+  Completed end-to-end demo:
+  - trusted setup
+  - party creation
+  - untrusted signature aggregation
+  - final verification
+
+- `test/test_threshold_end_to_end.py`  
+  Completed threshold workflow tests:
+  - XOR share reconstruction
+  - threshold sign and verify
+  - wrong message rejection
+  - repeated keyid refusal
