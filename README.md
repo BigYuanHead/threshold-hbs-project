@@ -171,6 +171,33 @@ The minimal threshold HBS workflow has also been implemented as an n-of-n scheme
 
 ## Minimal Threshold HBS Workflow with Extensions
 ### Extension 1: Have k-of-k subtrees in order to produce a k-of-n scheme rather than n-of-n.
+- `extension_1/kofn_setup.py`  
+  Completed k-of-n threshold setup:
+  - build one k-of-k Lamport subtree for each k-party subset
+  - XOR-share each subtree key only among the parties in that subset
+  - build a global Merkle tree over subtree roots
+  - generate party share bundles containing all subtrees each party belongs to
+
+- `extension_1/kofn_party.py`  
+  Completed k-of-n party role:
+  - stores subset-specific Lamport key shares
+  - signs only when the selected subtree contains the party
+  - prevents keyid reuse inside the same subtree
+  - keeps refused message support
+
+- `extension_1/kofn_server.py`  
+  Completed k-of-n untrusted aggregator role:
+  - accepts exactly k selected parties instead of all n parties
+  - chooses the matching k-of-k subtree from the selected party ids
+  - combines the k signature shares into the final Lamport signature
+  - keeps common signed_data fields: keyid, public_key, signature, and path
+
+- `extension_1/kofn_verifier.py`  
+  Completed k-of-n verification:
+  - verifies the Lamport signature on the message or batch root
+  - verifies the public key path inside the selected subtree
+  - verifies the selected subtree root against the global root
+  - supports verify(message_or_root, signed_data, root)-style verification
 
 ### Extension 3: Use Merkle trees on the Lamport tree leaves to buffer then batch sign messages efficiently and update the verification algorithm to support this.
 - `batch_threshold.py`  
@@ -223,4 +250,3 @@ The minimal threshold HBS workflow has also been implemented as an n-of-n scheme
   - Winternitz signature verification
   - public key Merkle authentication path verification
   - verification using message, signed_data, and public root
-
