@@ -18,7 +18,7 @@ class MerkleTree:
         self.root = self.levels[-1][0]
 
     # Build the Merkle Tree and return the levels
-    def build_tree(self, leaves: list[bytes]) -> list[list[bytes]]:
+    def build_tree(self, leaves):
         # hash(leaf) as level 0
         current_level = [hash_sha256(leaf) for leaf in leaves]
         levels = [current_level]
@@ -38,7 +38,7 @@ class MerkleTree:
         return levels
 
     # Get the authentication path for a given leaf index
-    def get_auth_path(self, index: int) -> list[bytes]:
+    def get_auth_path(self, index):
         # error check
         if not isinstance(index, int):
             raise TypeError("index must be an integer")
@@ -56,7 +56,7 @@ class MerkleTree:
         return path
 
     # Verify the authentication path for a given leaf, index, path, and root
-    def verify_path(self, leaf: bytes, index: int, path: list[bytes], root: bytes) -> bool:
+    def verify_path(self, leaf, index, path, root):
         if not isinstance(leaf, bytes):
             return False
         if not isinstance(index, int):

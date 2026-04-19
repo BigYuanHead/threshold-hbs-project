@@ -26,7 +26,7 @@ class LamportOTS:
         
 
     # Generate a key pair, private and public keys
-    def keygen(self) -> tuple[dict, dict]:
+    def keygen(self):
         # secret generation
         zero_secrets = [secrets.token_bytes(self.secret_bytes) for _ in range(self.n_bits)]
         one_secrets = [secrets.token_bytes(self.secret_bytes) for _ in range(self.n_bits)]
@@ -49,7 +49,7 @@ class LamportOTS:
     
 
     # Sign a message using the private key
-    def sign(self, message: bytes, private_key) -> list[bytes]:
+    def sign(self, message, private_key):
         # error check
         if not isinstance(message, bytes):
             raise TypeError("message must be bytes")
@@ -70,7 +70,7 @@ class LamportOTS:
         return signature
 
     # Verify a signature using the public key
-    def verify(self, message: bytes, signature, public_key) -> bool:
+    def verify(self, message, signature, public_key):
         # error check
         if not isinstance(message, bytes):
             raise TypeError("message must be bytes")

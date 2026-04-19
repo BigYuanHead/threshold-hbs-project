@@ -1,7 +1,7 @@
 import hashlib
 
 # Hash function using SHA-256
-def hash_sha256(data: bytes) -> bytes:
+def hash_sha256(data):
     # error check
     if not isinstance(data, bytes):
         raise TypeError("Input must be bytes")
@@ -9,7 +9,7 @@ def hash_sha256(data: bytes) -> bytes:
     return h
 
 # XOR two byte strings
-def xor_calculator(a: bytes, b: bytes) -> bytes:
+def xor_calculator(a, b):
     # error check
     if not isinstance(a, bytes) or not isinstance(b, bytes):
         raise TypeError("Input must be bytes")
@@ -19,7 +19,7 @@ def xor_calculator(a: bytes, b: bytes) -> bytes:
     return xor
 
 # Convert a hash digest to a list of bits
-def bits_converter(data: bytes) -> list[int]:
+def bits_converter(data):
     # error check
     if not isinstance(data, bytes):
         raise TypeError("Input must be bytes")

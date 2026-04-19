@@ -38,7 +38,7 @@ class StatefulHBS:
         return serial_key
 
     # Sign a message using a specific keyid
-    def sign(self, keyid, message: bytes) -> dict:
+    def sign(self, keyid, message):
         # error check
         if not isinstance(keyid, int):
             raise TypeError("keyid must be an integer")
@@ -62,7 +62,7 @@ class StatefulHBS:
         }
 
     # Verify a signature for a given message and signed data
-    def verify(self, message: bytes, signed_data) -> bool:
+    def verify(self, message, signed_data):
         # error check
         if not isinstance(message, bytes):
             raise TypeError("message must be bytes")
