@@ -61,6 +61,13 @@ project/
 │   └── test_threshold_end_to_end.py
 ├── extension_3/
 │   └── batch_threshold.py
+├── extension_5/
+│   ├── winternitz_ots.py
+│   ├── wz_party.py
+│   ├── wz_server.py
+│   ├── wz_setup.py
+│   ├── wz_verifier.py
+│   └── winternitz_standardized.py
 └── results/
 ```
 ---
@@ -175,3 +182,45 @@ The minimal threshold HBS workflow has also been implemented as an n-of-n scheme
   - rrejects wrong message, indexes and refused keyid
 
 ### Extension 5: Add support for Winternitz.
+- `winternitz_ots.py`  
+  Completed standalone Winternitz OTS:
+  - Winternitz key generation
+  - message signing
+  - signature verification
+  - wrong message and wrong signature rejection
+
+- `winternitz_standardized.py`  
+  Completed threshold-compatible Winternitz backend prototype:
+  - XOR sharing of precomputed Winternitz chain states
+  - signature share generation for each party
+  - XOR combination of signature shares
+  - verification of the combined Winternitz signature
+
+- `wz_setup.py`  
+  Completed Winternitz threshold setup:
+  - Winternitz key material generation
+  - party share bundle generation
+  - Merkle root construction over Winternitz public keys
+  - authentication path generation for each keyid
+  - public parameter generation
+
+- `wz_party.py`  
+  Completed Winternitz party role:
+  - local storage of Winternitz key shares
+  - Winternitz signature share generation
+  - keyid reuse prevention
+  - refused message support
+
+- `wz_server.py`  
+  Completed Winternitz untrusted aggregator role:
+  - request Winternitz signature shares from all parties
+  - reject incomplete signing attempts
+  - combine accepted signature shares
+  - output Lamport-like signed_data format
+
+- `wz_verifier.py`  
+  Completed Winternitz verifier role:
+  - Winternitz signature verification
+  - public key Merkle authentication path verification
+  - verification using message, signed_data, and public root
+
