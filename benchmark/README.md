@@ -1,111 +1,132 @@
 # Benchmark README
 
-This folder contains the benchmark code for the project.
+This benchmark suite evaluates the current implementation of the project under several controlled experiments.
 
-## Files
+## What the benchmark currently measures
 
-### `timer.py`
-Provides simple timing helpers.
-Used to measure setup time, signing time, and verification time.
-
-### `metrics.py`
-Provides helper functions for benchmark processing.
-Main uses:
-- hash input messages into a fixed 32-byte digest
-- measure serialized object size
-- compute summary statistics such as mean and standard deviation
-- save results to CSV and JSON
-
-### `bench_baseline.py`
-Benchmarks the baseline stateful hash-based signature scheme.
-It measures:
+The benchmark currently measures:
 - setup time
 - signing time
 - verification time
-- final signature size
-- average Merkle path length
-- success rate
+- signature size
+- batch pack size
+- success / rejection behavior for some extension tests
 
-### `bench_threshold.py`
-Benchmarks the threshold signing scheme.
-It uses the entity layer:
-- `TrustedServer`
-- `Party`
-- `UntrustedServer`
-- `Verifier`
+All experiments save:
+- raw CSV results
+- summary CSV / JSON results
+- plot images
 
-It measures:
+## What variables are controlled
+
+The benchmark follows a control-variable approach.
+In each experiment, one main variable is changed while the other parameters are fixed.
+
+### 1. `total_keys` scaling
+Changed variable:
+- `total_keys`
+
+Fixed variable:
+- `n_parties = 3`
+
+This experiment studies how system cost changes as the number of one-time keys grows.
+
+### 2. `n_parties` scaling
+Changed variable:
+- `n_parties`
+
+Fixed variable:
+- `total_keys = 32`
+
+This experiment studies how threshold overhead changes as more parties participate.
+
+### 3. `k-of-n` scaling
+Changed variable:
+- `threshold_k`
+
+Fixed variables:
+- `n_parties = 4`
+- `total_keys = 16`
+
+This experiment studies how the k-of-n extension behaves when the threshold changes.
+
+### 4. batch scaling
+Changed variable:
+- `batch_size`
+
+Fixed variables:
+- `total_keys = 32`
+- `n_parties = 3`
+
+This experiment studies how batch signing changes total cost and per-message cost.
+
+### 5. Lamport vs Winternitz
+Changed variable:
+- OTS type
+
+Fixed variables:
+- `total_keys = 16`
+- `n_parties = 3`
+- `w = 16`
+
+This experiment compares the Lamport-based threshold scheme with the Winternitz-based threshold scheme.
+
+## What is compared
+
+The benchmark currently includes these comparisons:
+
+### A. Baseline vs threshold
+It compares the original baseline implementation with the original threshold implementation under different `total_keys`.
+
+Compared metrics:
 - setup time
-- signing time
-- verification time
-- final signature size
-- average Merkle path length
-- success rate
+- sign time
+- verify time
+- signature size
 
-### `bench_compare.py`
-Runs comparison experiments.
-It is used for two main tests:
-- compare baseline and threshold for different `total_keys`
-- compare threshold performance for different `n_parties`
+### B. Threshold scaling with number of parties
+It compares threshold performance under different values of `n_parties`.
 
-### `run_benchmarks.py`
-Main script for running all benchmark experiments.
-It saves the results into `benchmark/results/`.
+Compared metrics:
+- setup time
+- sign time
+- verify time
 
-## Current benchmark experiments
+### C. k-of-n extension
+It compares k-of-n performance under different values of `k`.
 
-### 1. Compare by `total_keys`
-This test compares baseline and threshold when the number of one-time keys changes.
-Typical values:
-- 4
-- 8
-- 16
-- 32
-- 64
+Compared metrics:
+- sign time
+- verify time
+- signature size
 
-This helps evaluate:
-- setup scalability
-- signing cost
-- verification cost
-- signature size growth
+It also checks correctness for:
+- wrong message rejection
+- less-than-k rejection
+- reused key rejection
 
-### 2. Compare by `n_parties`
-This test measures threshold performance when the number of parties changes.
-Typical values:
-- 2
-- 3
-- 4
+### D. Batch extension
+It compares batch performance under different batch sizes.
 
-This helps evaluate:
-- threshold scalability
-- extra signing overhead from more parties
-- whether verification stays stable
+Compared metrics:
+- total batch sign time
+- total batch verify time
+- per-message sign time
+- per-message verify time
+- batch pack size
 
-## How to run
+### E. Lamport vs Winternitz
+It compares the two OTS backends in the threshold setting.
 
-Run from the project root:
+Compared metrics:
+- setup time
+- sign time
+- verify time
+- signature size
 
-```bash
-python -m benchmark.run_benchmarks
-```
+## Current output structure
 
-## Output
-
-Results are written to:
+The benchmark generates results in:
 
 ```text
-benchmark/results/
-```
-
-Typical output files:
-- `compare_total_keys_rows.csv`
-- `compare_total_keys_summary.json`
-- `compare_n_parties_rows.csv`
-- `compare_n_parties_summary.json`
-
-## Notes
-
-- All benchmark messages are first hashed to a 32-byte SHA-256 digest.
-- The current threshold benchmark measures computation cost only.
-- It does not simulate real network delay or communication latency.
-- This benchmark is for the minimal project implementation.
+results
