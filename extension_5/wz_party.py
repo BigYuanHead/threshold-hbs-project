@@ -15,7 +15,7 @@ class WinternitzParty:
 
         self.party_id = party_id
         self.key_shares = share_bundle["key_shares"]
-        self.backend = WinternitzStandardized(w=16)
+        self.backend = backend or WinternitzStandardized(w=16)
         self.used_keyids = set()
         self.refused_messages = refused_messages or set()
 
