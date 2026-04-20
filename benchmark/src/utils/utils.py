@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 def make_dirs():
-    root = Path("benchmark/results")
+    root = Path("results")
     raw_dir = root / "raw"
     summary_dir = root / "summary"
     plots_dir = root / "plots"

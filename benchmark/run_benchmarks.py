@@ -296,14 +296,14 @@ def benchmark_main():
 
     write_json(CONFIG, summary_dir / "benchmark_config.json")
 
-    print("\n" + ">>" * 20 + " start running experiments " + ">>" * 20)
+    print("\n" + ">>" * 20 + " Start running experiments " + ">>" * 20)
     run_experiment_total_keys(raw_dir, summary_dir, plots_dir)
     run_experiment_n_parties(raw_dir, summary_dir, plots_dir)
     run_experiment_kofn(raw_dir, summary_dir, plots_dir)
     run_experiment_batch(raw_dir, summary_dir, plots_dir)
     run_experiment_ots(raw_dir, summary_dir, plots_dir)
 
-    print( "\n" + "<<"*20 + "Benchmark completed." + "<<"*20)
+    print( "\n" + "<<"*20 + " Benchmark completed " + "<<"*20)
     print(f"\nRaw results: \n{raw_dir.resolve()}")
     print(f"\nSummary results: \n{summary_dir.resolve()}")
     print(f"\nPlots: \n{plots_dir.resolve()}")
