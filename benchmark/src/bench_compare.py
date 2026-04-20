@@ -1,5 +1,5 @@
-from benchmark.bench_baseline import benchmark_baseline
-from benchmark.bench_threshold import benchmark_threshold
+from benchmark.src.bench_baseline import benchmark_baseline
+from benchmark.src.bench_threshold import benchmark_threshold
 
 
 def compare_for_total_keys(total_keys_list: list[int], repeats: int = 5, n_parties: int = 3) -> dict:
