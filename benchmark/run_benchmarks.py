@@ -22,7 +22,7 @@ from benchmark.src.bench_batch_threshold import (
 )
 from benchmark.src.bench_ots_compare import (
     benchmark_lamport_vs_winternitz,
-    # benchmark_winternitz_by_w,  # 先别开，ext5 目前多 w 还不稳定
+    benchmark_winternitz_by_w,
 )
 
 
@@ -56,7 +56,9 @@ CONFIG = {
     "ots_total_keys": 16,
     "ots_n_parties": 3,
     "ots_w": 16,
+    "ots_w_values": [4, 8, 16],
 }
+
 
 
 def run_experiment_total_keys(raw_dir: Path, summary_dir: Path, plots_dir: Path):
@@ -175,6 +177,42 @@ def run_experiment_kofn(raw_dir: Path, summary_dir: Path, plots_dir: Path):
         layout=(1, 3),
         title="k-of-n Scaling with k",
         output_path=plots_dir / "exp_kofn_1x3.png",
+    )
+
+
+def run_experiment_winternitz_w(raw_dir: Path, summary_dir: Path, plots_dir: Path):
+    rows = benchmark_winternitz_by_w(
+        total_keys=CONFIG["ots_total_keys"],
+        n_parties=CONFIG["ots_n_parties"],
+        w_values=CONFIG["ots_w_values"],
+        repeats=CONFIG["repeats_ext"],
+    )
+
+    raw_path = raw_dir / "exp_winternitz_by_w_raw.csv"
+    summary_path = summary_dir / "exp_winternitz_by_w_summary.csv"
+
+    write_csv(rows, raw_path)
+
+    summary_df = save_summary(
+        rows=rows,
+        groupby_cols=["w"],
+        metric_cols=["setup_time", "sign_time_mean", "verify_time_mean", "avg_signature_size"],
+        output_path=summary_path,
+    )
+
+    plot_multi_line_subplots(
+        summary_df=summary_df,
+        x_col="w",
+        group_col=None,
+        metrics=[
+            ("setup_time_mean", "Setup Time (s)", "setup_time_std"),
+            ("sign_time_mean_mean", "Sign Time (s)", "sign_time_mean_std"),
+            ("verify_time_mean_mean", "Verify Time (s)", "verify_time_mean_std"),
+            ("avg_signature_size_mean", "Signature Size (bytes)", "avg_signature_size_std"),
+        ],
+        layout=(2, 2),
+        title="Winternitz Scaling with w",
+        output_path=plots_dir / "exp_winternitz_by_w_2x2.png",
     )
 
 
@@ -302,6 +340,7 @@ def benchmark_main():
     run_experiment_kofn(raw_dir, summary_dir, plots_dir)
     run_experiment_batch(raw_dir, summary_dir, plots_dir)
     run_experiment_ots(raw_dir, summary_dir, plots_dir)
+    run_experiment_winternitz_w(raw_dir, summary_dir, plots_dir)
 
     print( "\n" + "<<"*20 + " Benchmark completed " + "<<"*20)
     print(f"\nRaw results: \n{raw_dir.resolve()}")
