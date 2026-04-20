@@ -304,9 +304,9 @@ def benchmark_main():
     run_experiment_ots(raw_dir, summary_dir, plots_dir)
 
     print( "\n" + "<<"*20 + "Benchmark completed." + "<<"*20)
-    print(f"Raw results: \n{raw_dir.resolve()}")
-    print(f"Summary results: \n{summary_dir.resolve()}")
-    print(f"Plots: \n{plots_dir.resolve()}")
+    print(f"\nRaw results: \n{raw_dir.resolve()}")
+    print(f"\nSummary results: \n{summary_dir.resolve()}")
+    print(f"\nPlots: \n{plots_dir.resolve()}")
 
 
 if __name__ == "__main__":
