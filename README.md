@@ -23,6 +23,19 @@ The implementation includes:
 - Benchmarking under different settings
 ---
 
+## How to Run
+Install the required packages first:
+
+```bash
+pip install -r requirements.txt
+```
+Then run the main demo:
+```bash
+python main.py
+```
+---
+
+
 ## Project Structure
 
 ```text
