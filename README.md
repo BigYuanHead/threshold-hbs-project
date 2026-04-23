@@ -59,6 +59,11 @@ project/
 │   ├── test_verification.py
 │   ├── test_end_to_end.py
 │   └── test_threshold_end_to_end.py
+│── extension_1/
+│   ├── kofn_party.py
+│   ├── kofn_sercer.py
+│   ├──kofn_setup.py
+│   └──kofn_verifier.py
 ├── extension_3/
 │   └── batch_threshold.py
 ├── extension_5/
