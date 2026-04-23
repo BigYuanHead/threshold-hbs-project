@@ -15,7 +15,11 @@ from entities.verifier import Verifier
 
 # datatypes
 from benchmark.src.datatypes.all_cfgs_dt import BatchBenchConfig
-from benchmark.src.datatypes.all_result_dt import BatchFailureResult, BatchRunResult, NonBatchRunResult
+from benchmark.src.datatypes.all_result_dt import(
+    BatchFailureResult,
+    BatchRunResult,
+    NonBatchRunResult
+)
 
 
 def build_threshold_system(total_keys: int,

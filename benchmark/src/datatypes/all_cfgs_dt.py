@@ -38,6 +38,22 @@ class OtsCompareConfig:
     repeats: int = 5
     w: int = 16
 
+@dataclass
+class WinternitzSweepConfig:
+    total_keys: int
+    n_parties: int
+    w_values: list[int]
+    repeats: int = 5
+
+
+# >>>>>>>>>>>> threshold compare configs >>>>>>>>>>>>>>
+@dataclass
+class ThresholdBenchConfig:
+    total_keys: int
+    n_parties: int
+    repeats: int = 5
+
+
 
 
 # >>>>>>>>>>>>>> compare configs >>>>>>>>>>>>>>

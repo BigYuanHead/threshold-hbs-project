@@ -120,8 +120,8 @@ def run_kofn_once(total_keys: int,
         if ok:
             success_count += 1
 
-    sign_stats = summarize_measurements(sign_times)
-    verify_stats = summarize_measurements(verify_times)
+    sign_stats = summarize_time_measure(sign_times)
+    verify_stats = summarize_time_measure(verify_times)
 
     return KOfNRunResult(
         benchmark_name="kofn",

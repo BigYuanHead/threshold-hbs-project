@@ -20,6 +20,12 @@ from benchmark.src.datatypes.utils_dt import TimeStats
 from benchmark.src.utils.timer import now, timed, summarize_time_measure
 
 
+from benchmark.src.datatypes.all_cfgs_dt import OtsCompareConfig, WinternitzSweepConfig
+from benchmark.src.datatypes.all_result_dt import OtsRunResult
+from benchmark.src.datatypes.all_summary_dt import OtsBenchSummary
+
+
+
 
 
 
@@ -146,8 +152,8 @@ def run_lamport_threshold_once(total_keys: int,
         if ok:
             success_count += 1
 
-    sign_stats = summarize_measurements(sign_times)
-    verify_stats = summarize_measurements(verify_times)
+    sign_stats = summarize_time_measure(sign_times)
+    verify_stats = summarize_time_measure(verify_times)
 
     return OtsRunResult(
         benchmark_name="ots_compare",
@@ -211,8 +217,8 @@ def run_winternitz_threshold_once(total_keys: int,
         if ok:
             success_count += 1
 
-    sign_stats = summarize_measurements(sign_times)
-    verify_stats = summarize_measurements(verify_times)
+    sign_stats = summarize_time_measure(sign_times)
+    verify_stats = summarize_time_measure(verify_times)
 
     return OtsRunResult(
         benchmark_name="ots_compare",

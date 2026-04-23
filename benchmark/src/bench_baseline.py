@@ -5,7 +5,6 @@ from core.baseline import StatefulHBS
 from benchmark.src.utils.metrics import digest32, serialized_size
 
 
-
 from benchmark.src.datatypes.all_cfgs_dt import BaselineBenchConfig
 from benchmark.src.datatypes.all_result_dt import BaselineRunResult
 from benchmark.src.datatypes.all_summary_dt import BaselineBenchSummary

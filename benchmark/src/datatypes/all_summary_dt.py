@@ -17,6 +17,23 @@ class BaselineBenchSummary:
         return asdict(self)
     
 
+@dataclass
+class ThresholdBenchSummary:
+    benchmark_name: str
+    total_keys: int
+    n_parties: int
+    repeats: int
+
+    setup_time_mean: float
+    success_rate_mean: float
+    avg_signature_size_mean: float
+    avg_path_length_mean: float
+    sign_time_mean_mean: float
+    verify_time_mean_mean: float
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
 
 @dataclass
 class KOfNBenchSummary:

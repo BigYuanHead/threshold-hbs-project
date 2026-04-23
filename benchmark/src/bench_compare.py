@@ -6,9 +6,8 @@ from benchmark.src.bench_threshold import benchmark_threshold
 
 
 
-from benchmark.src.datatypes.all_cfgs_dt import BatchBenchConfig
-
-
+from benchmark.src.datatypes.all_cfgs_dt import CompareNPartiesConfig, CompareTotalKeysConfig
+from benchmark.src.datatypes.all_result_dt import CompareBenchResult
 
 
 

@@ -4,18 +4,21 @@ import json
 import hashlib
 import pickle
 import statistics
-from typing import Iterable
+from dataclasses import asdict, is_dataclass
+from typing import Any, Iterable
 
 import pandas as pd
 import matplotlib.pyplot as plt
 
 
-# ------------ helpers ------------
+# ---------------------------------------------------------
+# basic helpers
+# ---------------------------------------------------------
 def digest32(data: bytes) -> bytes:
     return hashlib.sha256(data).digest()
 
 
-def serialized_size(obj) -> int:
+def serialized_size(obj: Any) -> int:
     return len(pickle.dumps(obj))
 
 
@@ -29,267 +32,113 @@ def stdev(values: Iterable[float]) -> float:
     return statistics.stdev(values) if len(values) >= 2 else 0.0
 
 
-def summarise_times(values: list[float], prefix: str) -> dict:
-    """
-        summarize time with mean, stdev, min, max
-
-        @return:
-        {
-            f"{prefix}_mean": ...,
-            f"{prefix}_stdev": ...,
-            f"{prefix}_min": ...,
-            f"{prefix}_max": ...,
-        }      
-    """
-    return {
-        f"{prefix}_mean": mean(values),
-        f"{prefix}_stdev": stdev(values),
-        f"{prefix}_min": min(values) if values else 0.0,
-        f"{prefix}_max": max(values) if values else 0.0,
-    }
+# ---------------------------------------------------------
+# record normalization
+# ---------------------------------------------------------
+def normalize_record(record: Any) -> dict:
+    if hasattr(record, "to_dict") and callable(record.to_dict):
+        return record.to_dict()
+    if is_dataclass(record):
+        return asdict(record)
+    if isinstance(record, dict):
+        return record
+    raise TypeError(f"Unsupported record type: {type(record)}")
 
 
-# ------------ file writing ------------
+def normalize_rows(rows: list[Any]) -> list[dict]:
+    return [normalize_record(row) for row in rows]
 
-def write_csv(rows: list[dict], output_path: str | Path):
+
+# ---------------------------------------------------------
+# file writing
+# ---------------------------------------------------------
+def write_csv(rows: list[Any], output_path: str | Path) -> None:
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    if not rows:
+    normalized_rows = normalize_rows(rows)
+
+    if not normalized_rows:
         output_path.write_text("")
         return
 
-    fieldnames = sorted({key for row in rows for key in row.keys()})
-    with output_path.open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+    field_names = sorted({key for row in normalized_rows for key in row.keys()})
+    with output_path.open("w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=field_names)
         writer.writeheader()
-        writer.writerows(rows)
+        writer.writerows(normalized_rows)
 
 
-def write_json(obj, output_path: str | Path):
+def write_json(obj: Any, output_path: str | Path) -> None:
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if isinstance(obj, list):
+        normalized_obj = []
+        for item in obj:
+            if isinstance(item, (str, int, float, bool)) or item is None:
+                normalized_obj.append(item)
+            else:
+                normalized_obj.append(normalize_record(item))
+        obj = normalized_obj
+    elif not isinstance(obj, (dict, str, int, float, bool)) and obj is not None:
+        obj = normalize_record(obj)
+
     output_path.write_text(json.dumps(obj, indent=2), encoding="utf-8")
 
 
-#  ------------ dataframe and aggregate Opts ------------
-def rows_to_df(rows: list[dict]) -> pd.DataFrame:
-    if not rows:
+# ---------------------------------------------------------
+# dataframe + summary
+# ---------------------------------------------------------
+def rows_to_df(rows: list[Any]) -> pd.DataFrame:
+    normalized_rows = normalize_rows(rows)
+    if not normalized_rows:
         return pd.DataFrame()
-    return pd.DataFrame(rows)
+    return pd.DataFrame(normalized_rows)
 
 
 def save_summary(
-    rows: list[dict],
+    rows: list[Any],
     groupby_cols: list[str],
     metric_cols: list[str],
     output_path: str | Path,
 ) -> pd.DataFrame:
-    """
-    Group raw rows by groupby_cols and compute mean/std for metric_cols.
-    """
-    df = rows_to_df(rows)
+    summary_df = rows_to_df(rows)
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    if df.empty:
-        df.to_csv(output_path, index=False)
-        return df
+    if summary_df.empty:
+        summary_df.to_csv(output_path, index=False)
+        return summary_df
 
-    agg_map = {col: ["mean", "std"] for col in metric_cols if col in df.columns}
-    summary = df.groupby(groupby_cols, dropna=False).agg(agg_map).reset_index()
+    usable_metric_cols = [column for column in metric_cols if column in summary_df.columns]
+    agg_map = {column: ["mean", "std"] for column in usable_metric_cols}
 
-    # flatten multi-index columns
-    flat_cols = []
-    for col in summary.columns:
-        if isinstance(col, tuple):
-            left, right = col
-            if right == "":
-                flat_cols.append(left)
+    summary_df = summary_df.groupby(groupby_cols, dropna=False).agg(agg_map).reset_index()
+
+    flat_columns = []
+    for column in summary_df.columns:
+        if isinstance(column, tuple):
+            left_name, right_name = column
+            if right_name == "":
+                flat_columns.append(left_name)
             else:
-                flat_cols.append(f"{left}_{right}")
+                flat_columns.append(f"{left_name}_{right_name}")
         else:
-            flat_cols.append(col)
-    summary.columns = flat_cols
+            flat_columns.append(column)
+    summary_df.columns = flat_columns
 
-    summary.to_csv(output_path, index=False)
-    return summary
-
-
+    summary_df.to_csv(output_path, index=False)
+    return summary_df
 
 
-
-# ------------ plot helper ------------
-def ensure_plotDir(path: str | Path) -> Path:
+# ---------------------------------------------------------
+# plotting helpers
+# ---------------------------------------------------------
+def _ensure_plot_path(path: str | Path) -> Path:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     return path
-
-
-def plot_line_fromSummary(
-    summary_df: pd.DataFrame,
-    x_col: str,
-    y_mean_col: str,
-    y_std_col: str | None,
-    group_col: str | None,
-    title: str,
-    xlabel: str,
-    ylabel: str,
-    output_path: str | Path,
-):
-    output_path = ensure_plotDir(output_path)
-    plt.figure(figsize=(8, 5))
-
-    if summary_df.empty:
-        plt.title(title)
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
-        plt.tight_layout()
-        plt.savefig(output_path, dpi=200)
-        plt.close()
-        return
-
-    if group_col and group_col in summary_df.columns:
-        for group_value, group_df in summary_df.groupby(group_col):
-            group_df = group_df.sort_values(by=x_col)
-            plt.plot(group_df[x_col], group_df[y_mean_col], marker="o", label=str(group_value))
-            if y_std_col and y_std_col in group_df.columns:
-                lower = group_df[y_mean_col] - group_df[y_std_col].fillna(0)
-                upper = group_df[y_mean_col] + group_df[y_std_col].fillna(0)
-                plt.fill_between(group_df[x_col], lower, upper, alpha=0.15)
-        plt.legend()
-    else:
-        summary_df = summary_df.sort_values(by=x_col)
-        plt.plot(summary_df[x_col], summary_df[y_mean_col], marker="o")
-        if y_std_col and y_std_col in summary_df.columns:
-            lower = summary_df[y_mean_col] - summary_df[y_std_col].fillna(0)
-            upper = summary_df[y_mean_col] + summary_df[y_std_col].fillna(0)
-            plt.fill_between(summary_df[x_col], lower, upper, alpha=0.15)
-
-    plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.tight_layout()
-    plt.savefig(output_path, dpi=200)
-    plt.close()
-
-
-def plot_groupedBar_fromSummary(
-    summary_df: pd.DataFrame,
-    x_col: str,
-    y_mean_col: str,
-    group_col: str,
-    title: str,
-    xlabel: str,
-    ylabel: str,
-    output_path: str | Path,
-):
-    output_path = ensure_plotDir(output_path)
-    plt.figure(figsize=(9, 5))
-
-    if summary_df.empty:
-        plt.title(title)
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
-        plt.tight_layout()
-        plt.savefig(output_path, dpi=200)
-        plt.close()
-        return
-
-    pivot_df = summary_df.pivot(index=x_col, columns=group_col, values=y_mean_col)
-    pivot_df.plot(kind="bar", ax=plt.gca())
-
-    plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.xticks(rotation=0)
-    plt.tight_layout()
-    plt.savefig(output_path, dpi=200)
-    plt.close()
-
-
-def plot_overallCompare(
-    rows: list[dict],
-    scheme_col: str,
-    metric_cols: list[str],
-    output_path: str | Path,
-    title: str = "Overall Comparison",
-):
-    output_path = ensure_plotDir(output_path)
-    df = rows_to_df(rows)
-
-    if df.empty:
-        plt.figure(figsize=(8, 5))
-        plt.title(title)
-        plt.tight_layout()
-        plt.savefig(output_path, dpi=200)
-        plt.close()
-        return
-
-    usable_metrics = [m for m in metric_cols if m in df.columns]
-    if not usable_metrics:
-        plt.figure(figsize=(8, 5))
-        plt.title(title)
-        plt.tight_layout()
-        plt.savefig(output_path, dpi=200)
-        plt.close()
-        return
-
-    summary = df.groupby(scheme_col)[usable_metrics].mean().reset_index()
-    summary = summary.set_index(scheme_col)
-
-    plt.figure(figsize=(10, 5))
-    summary.plot(kind="bar", ax=plt.gca())
-    plt.title(title)
-    plt.xlabel("Scheme")
-    plt.ylabel("Average value")
-    plt.xticks(rotation=0)
-    plt.tight_layout()
-    plt.savefig(output_path, dpi=200)
-    plt.close()
-
-
-
-def plot_ots_compare2x2(
-    summary_df,
-    x_col: str,
-    output_path,
-    title: str = "Lamport vs Winternitz Comparison",
-):
-    output_path = ensure_plotDir(output_path)
-
-    fig, axes = plt.subplots(2, 2, figsize=(10, 8))
-    axes = axes.flatten()
-
-    if summary_df.empty:
-        fig.suptitle(title)
-        plt.tight_layout()
-        plt.savefig(output_path, dpi=200)
-        plt.close()
-        return
-
-    plot_df = summary_df.sort_values(by=x_col)
-    x_vals = plot_df[x_col].astype(str)
-
-    metrics = [
-        ("setup_time_mean", "Setup Time (s)"),
-        ("sign_time_mean_mean", "Sign Time (s)"),
-        ("verify_time_mean_mean", "Verify Time (s)"),
-        ("avg_signature_size_mean", "Signature Size (bytes)"),
-    ]
-
-    for ax, (col, ylabel) in zip(axes, metrics):
-        if col in plot_df.columns:
-            ax.bar(x_vals, plot_df[col])
-            ax.set_title(ylabel)
-            ax.set_xlabel("OTS Type")
-            ax.set_ylabel(ylabel)
-
-    fig.suptitle(title)
-    plt.tight_layout()
-    plt.savefig(output_path, dpi=200)
-    plt.close()
-
 
 
 def plot_multiLine_subplots(
@@ -300,14 +149,8 @@ def plot_multiLine_subplots(
     layout: tuple[int, int],
     title: str,
     output_path: str | Path,
-):
-    """
-    Generic multi-subplot line plot.
-
-    @ metrics format:
-        [ (y_mean_col, ylabel, y_std_col_or_None), ... ]
-    """
-    output_path = ensure_plotDir(output_path)
+) -> None:
+    output_path = _ensure_plot_path(output_path)
     rows, cols = layout
     fig, axes = plt.subplots(rows, cols, figsize=(5 * cols, 4 * rows))
     axes = axes.flatten() if hasattr(axes, "flatten") else [axes]
@@ -319,35 +162,34 @@ def plot_multiLine_subplots(
         plt.close()
         return
 
-    for ax, (y_mean_col, ylabel, y_std_col) in zip(axes, metrics):
+    for axis, (y_mean_col, y_label, y_std_col) in zip(axes, metrics):
         if y_mean_col not in summary_df.columns:
-            ax.set_title(f"{ylabel} (missing)")
+            axis.set_title(f"{y_label} (missing)")
             continue
 
         if group_col and group_col in summary_df.columns:
             for group_value, group_df in summary_df.groupby(group_col):
                 group_df = group_df.sort_values(by=x_col)
-                ax.plot(group_df[x_col], group_df[y_mean_col], marker="o", label=str(group_value))
+                axis.plot(group_df[x_col], group_df[y_mean_col], marker="o", label=str(group_value))
                 if y_std_col and y_std_col in group_df.columns:
                     lower = group_df[y_mean_col] - group_df[y_std_col].fillna(0)
                     upper = group_df[y_mean_col] + group_df[y_std_col].fillna(0)
-                    ax.fill_between(group_df[x_col], lower, upper, alpha=0.15)
-            ax.legend()
+                    axis.fill_between(group_df[x_col], lower, upper, alpha=0.15)
+            axis.legend()
         else:
             plot_df = summary_df.sort_values(by=x_col)
-            ax.plot(plot_df[x_col], plot_df[y_mean_col], marker="o")
+            axis.plot(plot_df[x_col], plot_df[y_mean_col], marker="o")
             if y_std_col and y_std_col in plot_df.columns:
                 lower = plot_df[y_mean_col] - plot_df[y_std_col].fillna(0)
                 upper = plot_df[y_mean_col] + plot_df[y_std_col].fillna(0)
-                ax.fill_between(plot_df[x_col], lower, upper, alpha=0.15)
+                axis.fill_between(plot_df[x_col], lower, upper, alpha=0.15)
 
-        ax.set_title(ylabel)
-        ax.set_xlabel(x_col)
-        ax.set_ylabel(ylabel)
+        axis.set_title(y_label)
+        axis.set_xlabel(x_col)
+        axis.set_ylabel(y_label)
 
-    # hide unused axes
-    for i in range(len(metrics), len(axes)):
-        axes[i].axis("off")
+    for index in range(len(metrics), len(axes)):
+        axes[index].axis("off")
 
     fig.suptitle(title)
     plt.tight_layout()
@@ -362,14 +204,8 @@ def plot_multiBar_subplots(
     layout: tuple[int, int],
     title: str,
     output_path: str | Path,
-):
-    """
-    Generic multi subplot bar plot
-
-    @ metrics format
-        [ (y_mean_col, ylabel), ... ]
-    """
-    output_path = ensure_plotDir(output_path)
+) -> None:
+    output_path = _ensure_plot_path(output_path)
     rows, cols = layout
     fig, axes = plt.subplots(rows, cols, figsize=(5 * cols, 4 * rows))
     axes = axes.flatten() if hasattr(axes, "flatten") else [axes]
@@ -383,19 +219,18 @@ def plot_multiBar_subplots(
 
     plot_df = summary_df.sort_values(by=x_col)
 
-    for ax, (y_mean_col, ylabel) in zip(axes, metrics):
+    for axis, (y_mean_col, y_label) in zip(axes, metrics):
         if y_mean_col not in plot_df.columns:
-            ax.set_title(f"{ylabel} (missing)")
+            axis.set_title(f"{y_label} (missing)")
             continue
 
-        ax.bar(plot_df[x_col].astype(str), plot_df[y_mean_col])
-        ax.set_title(ylabel)
-        ax.set_xlabel(x_col)
-        ax.set_ylabel(ylabel)
+        axis.bar(plot_df[x_col].astype(str), plot_df[y_mean_col])
+        axis.set_title(y_label)
+        axis.set_xlabel(x_col)
+        axis.set_ylabel(y_label)
 
-    # hide unused axes
-    for i in range(len(metrics), len(axes)):
-        axes[i].axis("off")
+    for index in range(len(metrics), len(axes)):
+        axes[index].axis("off")
 
     fig.suptitle(title)
     plt.tight_layout()

@@ -26,6 +26,35 @@ class BaselineRunResult:
         return asdict(self)
     
 
+# >>>>>>>>>>>>>>>>>>> baseline threshold datatypes >>>>>>>>>>>>>>>>>>>
+
+@dataclass
+class ThresholdRunResult:
+    benchmark_name: str
+    total_keys: int
+    n_parties: int
+    setup_time: float
+
+    success_rate: float
+    avg_signature_size: float
+    avg_path_length: float
+    root_size: int
+
+    sign_time_mean: float
+    sign_time_stdev: float
+    sign_time_min: float
+    sign_time_max: float
+
+    verify_time_mean: float
+    verify_time_stdev: float
+    verify_time_min: float
+    verify_time_max: float
+
+    repeat: int = 0
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
 # >>>>>>>>>>>>>>>>>>> batch threshold result datatypes >>>>>>>>>>>>>>>>>>>
 
 @dataclass

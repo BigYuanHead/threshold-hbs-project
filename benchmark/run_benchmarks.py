@@ -1,16 +1,16 @@
 from pathlib import Path
-import os, sys
+import os
+import sys
 
-sys.path.append(os.path.abspath(".")) # root dir
+sys.path.append(os.path.abspath("."))
 
 from benchmark.src.utils import utils
-
 from benchmark.src.utils.metrics import (
     write_csv,
     write_json,
     save_summary,
     plot_multiLine_subplots,
-    plot_multiBar_subplots
+    plot_multiBar_subplots,
 )
 
 from benchmark.src.bench_compare import compare_for_n_parties, compare_for_total_keys
@@ -26,9 +26,6 @@ from benchmark.src.bench_ots_compare import (
 )
 
 
-# ---------------------------------------------------------
-# global benchmark config
-# ---------------------------------------------------------
 CONFIG = {
     "repeats_main": 7,
     "repeats_ext": 5,
@@ -61,14 +58,14 @@ CONFIG = {
 
 
 
-def runExp_totalKeys(raw_dir: Path, summary_dir: Path, plots_dir: Path):
-    rows_bundle = compare_for_total_keys(
+def runExp_totalKeys(raw_dir: Path, summary_dir: Path, plots_dir: Path) -> None:
+    compare_result = compare_for_total_keys(
         total_keys_list=CONFIG["total_keys_values"],
         repeats=CONFIG["repeats_main"],
         n_parties=CONFIG["total_keys_fixed_n_parties"],
     )
-    rows = rows_bundle["rows"]
-    summaries = rows_bundle["summaries"]
+    rows = compare_result.rows
+    summaries = compare_result.summaries
 
     raw_path = raw_dir / "exp_total_keys_raw.csv"
     summary_path = summary_dir / "exp_total_keys_summary.csv"
@@ -79,35 +76,36 @@ def runExp_totalKeys(raw_dir: Path, summary_dir: Path, plots_dir: Path):
 
     summary_df = save_summary(
         rows=rows,
-        groupby_cols=["scheme", "total_keys"],
+        groupby_cols=["benchmark_name", "total_keys"],
         metric_cols=["setup_time", "sign_time_mean", "verify_time_mean", "avg_signature_size"],
         output_path=summary_path,
     )
 
     plot_multiLine_subplots(
-    summary_df=summary_df,
-    x_col="total_keys",
-    group_col="scheme",
-    metrics=[
-        ("setup_time_mean", "Setup Time (s)", "setup_time_std"),
-        ("sign_time_mean_mean", "Sign Time (s)", "sign_time_mean_std"),
-        ("verify_time_mean_mean", "Verify Time (s)", "verify_time_mean_std"),
-        ("avg_signature_size_mean", "Signature Size (bytes)", "avg_signature_size_std"),
-    ],
-    layout=(2, 2),
-    title="Scaling with total_keys",
-    output_path=plots_dir / "exp_total_keys_2x2.png",
-)
+        summary_df=summary_df,
+        x_col="total_keys",
+        group_col="benchmark_name",
+        metrics=[
+            ("setup_time_mean", "Setup Time (s)", "setup_time_std"),
+            ("sign_time_mean_mean", "Sign Time (s)", "sign_time_mean_std"),
+            ("verify_time_mean_mean", "Verify Time (s)", "verify_time_mean_std"),
+            ("avg_signature_size_mean", "Signature Size (bytes)", "avg_signature_size_std"),
+        ],
+        layout=(2, 2),
+        title="Scaling with total_keys",
+        output_path=plots_dir / "exp_total_keys_2x2.png",
+    )
 
 
-def runExp_N_parties(raw_dir: Path, summary_dir: Path, plots_dir: Path):
-    rows_bundle = compare_for_n_parties(
+
+def runExp_nParties(raw_dir: Path, summary_dir: Path, plots_dir: Path) -> None:
+    compare_result = compare_for_n_parties(
         total_keys=CONFIG["n_parties_fixed_total_keys"],
         n_parties_list=CONFIG["n_parties_values"],
         repeats=CONFIG["repeats_main"],
     )
-    rows = rows_bundle["rows"]
-    summaries = rows_bundle["summaries"]
+    rows = compare_result.rows
+    summaries = compare_result.summaries
 
     raw_path = raw_dir / "exp_n_parties_raw.csv"
     summary_path = summary_dir / "exp_n_parties_summary.csv"
@@ -138,7 +136,8 @@ def runExp_N_parties(raw_dir: Path, summary_dir: Path, plots_dir: Path):
     )
 
 
-def runExp_kofn(raw_dir: Path, summary_dir: Path, plots_dir: Path):
+
+def runExp_kofn(raw_dir: Path, summary_dir: Path, plots_dir: Path) -> None:
     rows = benchmark_kofn_by_k(
         total_keys=CONFIG["kofn_total_keys"],
         n_parties=CONFIG["kofn_n_parties"],
@@ -170,9 +169,9 @@ def runExp_kofn(raw_dir: Path, summary_dir: Path, plots_dir: Path):
         x_col="threshold_k",
         group_col=None,
         metrics=[
-                    ("sign_time_mean_mean", "Sign Time (s)", "sign_time_mean_std"),
-                    ("verify_time_mean_mean", "Verify Time (s)", "verify_time_mean_std"),
-                    ("avg_signature_size_mean", "Signature Size (bytes)", "avg_signature_size_std"),
+            ("sign_time_mean_mean", "Sign Time (s)", "sign_time_mean_std"),
+            ("verify_time_mean_mean", "Verify Time (s)", "verify_time_mean_std"),
+            ("avg_signature_size_mean", "Signature Size (bytes)", "avg_signature_size_std"),
         ],
         layout=(1, 3),
         title="k-of-n Scaling with k",
@@ -180,43 +179,8 @@ def runExp_kofn(raw_dir: Path, summary_dir: Path, plots_dir: Path):
     )
 
 
-def runExp_winternitz_W(raw_dir: Path, summary_dir: Path, plots_dir: Path):
-    rows = benchmark_winternitz_by_w(
-        total_keys=CONFIG["ots_total_keys"],
-        n_parties=CONFIG["ots_n_parties"],
-        w_values=CONFIG["ots_w_values"],
-        repeats=CONFIG["repeats_ext"],
-    )
 
-    raw_path = raw_dir / "exp_winternitz_by_w_raw.csv"
-    summary_path = summary_dir / "exp_winternitz_by_w_summary.csv"
-
-    write_csv(rows, raw_path)
-
-    summary_df = save_summary(
-        rows=rows,
-        groupby_cols=["w"],
-        metric_cols=["setup_time", "sign_time_mean", "verify_time_mean", "avg_signature_size"],
-        output_path=summary_path,
-    )
-
-    plot_multiLine_subplots(
-        summary_df=summary_df,
-        x_col="w",
-        group_col=None,
-        metrics=[
-            ("setup_time_mean", "Setup Time (s)", "setup_time_std"),
-            ("sign_time_mean_mean", "Sign Time (s)", "sign_time_mean_std"),
-            ("verify_time_mean_mean", "Verify Time (s)", "verify_time_mean_std"),
-            ("avg_signature_size_mean", "Signature Size (bytes)", "avg_signature_size_std"),
-        ],
-        layout=(2, 2),
-        title="Winternitz Scaling with w",
-        output_path=plots_dir / "exp_winternitz_by_w_2x2.png",
-    )
-
-
-def runExp_batch(raw_dir: Path, summary_dir: Path, plots_dir: Path):
+def runExp_batch(raw_dir: Path, summary_dir: Path, plots_dir: Path) -> None:
     batch_rows = benchmark_batch_by_size(
         total_keys=CONFIG["batch_total_keys"],
         n_parties=CONFIG["batch_n_parties"],
@@ -258,9 +222,9 @@ def runExp_batch(raw_dir: Path, summary_dir: Path, plots_dir: Path):
         output_path=summary_path,
     )
 
-    compare_summary_df = save_summary(
+    save_summary(
         rows=batch_vs_nonbatch_rows,
-        groupby_cols=["scheme"],
+        groupby_cols=["benchmark_name"],
         metric_cols=[
             "total_sign_time",
             "total_verify_time",
@@ -291,9 +255,8 @@ def runExp_batch(raw_dir: Path, summary_dir: Path, plots_dir: Path):
 
 
 
-
-def runExp_ots(raw_dir: Path, summary_dir: Path, plots_dir: Path):
-    rows = benchmark_lamport_vs_winternitz(
+def runExp_ots(raw_dir: Path, summary_dir: Path, plots_dir: Path) -> None:
+    rows, summaries = benchmark_lamport_vs_winternitz(
         total_keys=CONFIG["ots_total_keys"],
         n_parties=CONFIG["ots_n_parties"],
         w=CONFIG["ots_w"],
@@ -302,8 +265,10 @@ def runExp_ots(raw_dir: Path, summary_dir: Path, plots_dir: Path):
 
     raw_path = raw_dir / "exp_lamport_vs_winternitz_raw.csv"
     summary_path = summary_dir / "exp_lamport_vs_winternitz_summary.csv"
+    json_path = summary_dir / "exp_lamport_vs_winternitz_summary.json"
 
     write_csv(rows, raw_path)
+    write_json(summaries, json_path)
 
     summary_df = save_summary(
         rows=rows,
@@ -328,24 +293,62 @@ def runExp_ots(raw_dir: Path, summary_dir: Path, plots_dir: Path):
 
 
 
+def runExp_winternitzW(raw_dir: Path, summary_dir: Path, plots_dir: Path) -> None:
+    rows, summaries = benchmark_winternitz_by_w(
+        total_keys=CONFIG["ots_total_keys"],
+        n_parties=CONFIG["ots_n_parties"],
+        w_values=CONFIG["ots_w_values"],
+        repeats=CONFIG["repeats_ext"],
+    )
 
-def benchmark_main():
+    raw_path = raw_dir / "exp_winternitz_by_w_raw.csv"
+    summary_path = summary_dir / "exp_winternitz_by_w_summary.csv"
+    json_path = summary_dir / "exp_winternitz_by_w_summary.json"
+
+    write_csv(rows, raw_path)
+    write_json(summaries, json_path)
+
+    summary_df = save_summary(
+        rows=rows,
+        groupby_cols=["w"],
+        metric_cols=["setup_time", "sign_time_mean", "verify_time_mean", "avg_signature_size"],
+        output_path=summary_path,
+    )
+
+    plot_multiLine_subplots(
+        summary_df=summary_df,
+        x_col="w",
+        group_col=None,
+        metrics=[
+            ("setup_time_mean", "Setup Time (s)", "setup_time_std"),
+            ("sign_time_mean_mean", "Sign Time (s)", "sign_time_mean_std"),
+            ("verify_time_mean_mean", "Verify Time (s)", "verify_time_mean_std"),
+            ("avg_signature_size_mean", "Signature Size (bytes)", "avg_signature_size_std"),
+        ],
+        layout=(2, 2),
+        title="Winternitz Scaling with w",
+        output_path=plots_dir / "exp_winternitz_by_w_2x2.png",
+    )
+
+
+
+def benchmark_main() -> None:
     _, raw_dir, summary_dir, plots_dir = utils.make_dirs()
 
     write_json(CONFIG, summary_dir / "benchmark_config.json")
 
     print("\n" + ">>" * 20 + " Start running experiments " + ">>" * 20)
     runExp_totalKeys(raw_dir, summary_dir, plots_dir)
-    run_experiment_n_parties(raw_dir, summary_dir, plots_dir)
-    run_experiment_kofn(raw_dir, summary_dir, plots_dir)
-    run_experiment_batch(raw_dir, summary_dir, plots_dir)
+    runExp_nParties(raw_dir, summary_dir, plots_dir)
+    runExp_kofn(raw_dir, summary_dir, plots_dir)
+    runExp_batch(raw_dir, summary_dir, plots_dir)
     runExp_ots(raw_dir, summary_dir, plots_dir)
-    run_experiment_winternitz_w(raw_dir, summary_dir, plots_dir)
+    runExp_winternitzW(raw_dir, summary_dir, plots_dir)
 
-    print( "\n" + "<<"*20 + " Benchmark completed " + "<<"*20)
-    print(f"\nRaw results: \n{raw_dir.resolve()}")
-    print(f"\nSummary results: \n{summary_dir.resolve()}")
-    print(f"\nPlots: \n{plots_dir.resolve()}")
+    print("\n" + "<<" * 20 + " Benchmark completed " + "<<" * 20)
+    print(f"\nRaw results:\n{raw_dir.resolve()}")
+    print(f"\nSummary results:\n{summary_dir.resolve()}")
+    print(f"\nPlots:\n{plots_dir.resolve()}")
 
 
 if __name__ == "__main__":
