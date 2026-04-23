@@ -238,7 +238,7 @@ def build_relative_overhead_df(summary_df: pd.DataFrame) -> pd.DataFrame:
     if summary_df.empty:
         return pd.DataFrame()
 
-    # split baseline rows and threshold rows first
+    # split baseline and threshold rows first
     baselineDf = summary_df[summary_df["benchmark_name"] == "baseline"].copy()
     thresholdDf = summary_df[summary_df["benchmark_name"] == "threshold"].copy()
 

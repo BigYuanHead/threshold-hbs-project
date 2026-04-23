@@ -5,21 +5,25 @@ from typing import Any
 # >>>>>>>>>>>>>>>>>>> baseline result datatypes >>>>>>>>>>>>>>>>>>>
 
 @dataclass
-class BaselineRunResult:
+class baselineRun_resultDt:
     benchmark_name: str
     total_keys: int
     setup_time: float
     success_rate: float
+
     avg_signature_size: float
     avg_path_length: float
+
     sign_time_mean: float
     sign_time_stdev: float
     sign_time_min: float
     sign_time_max: float
+
     verify_time_mean: float
     verify_time_stdev: float
     verify_time_min: float
     verify_time_max: float
+
     repeat: int = 0
 
     def to_dict(self) -> dict:
@@ -29,7 +33,7 @@ class BaselineRunResult:
 # >>>>>>>>>>>>>>>>>>> baseline threshold datatypes >>>>>>>>>>>>>>>>>>>
 
 @dataclass
-class ThresholdRunResult:
+class thresholdRun_resultDt:
     benchmark_name: str
     total_keys: int
     n_parties: int
@@ -58,7 +62,7 @@ class ThresholdRunResult:
 # >>>>>>>>>>>>>>>>>>> batch threshold result datatypes >>>>>>>>>>>>>>>>>>>
 
 @dataclass
-class BatchRunResult:
+class batchRun_resultDt:
     benchmark_name: str
     total_keys: int
     n_parties: int
@@ -83,7 +87,7 @@ class BatchRunResult:
 
 
 @dataclass
-class NonBatchRunResult:
+class nonBatchRun_resultDt:
     benchmark_name: str
     total_keys: int
     n_parties: int
@@ -113,7 +117,7 @@ class NonBatchRunResult:
 
 
 @dataclass
-class BatchFailureResult:
+class batchFailure_resultDt:
     benchmark_name: str
     total_keys: int
     n_parties: int
@@ -131,7 +135,7 @@ class BatchFailureResult:
 # >>>>>>>>>>>>>>>>>>> K of N result datatypes >>>>>>>>>>>>>>>>>>>
 
 @dataclass
-class KOfNRunResult:
+class KOfNRun_resultDt:
     benchmark_name: str
     total_keys: int
     n_parties: int
@@ -158,7 +162,7 @@ class KOfNRunResult:
 
 
 @dataclass
-class KOfNFailureResult:
+class KOfNFailure_resultDt:
     benchmark_name: str
     total_keys: int
     n_parties: int
@@ -177,7 +181,7 @@ class KOfNFailureResult:
 # >>>>>>>>>>>>>>>>>>> OTS compare result datatypes >>>>>>>>>>>>>>>>>>>
 
 @dataclass
-class OtsRunResult:
+class otsRun_resultDt:
     benchmark_name: str
     ots_type: str
     total_keys: int
@@ -207,9 +211,9 @@ class OtsRunResult:
 
 
 @dataclass
-class CompareBenchResult:
-    rows: list[Any]
-    summaries: list[Any]
+class compareBench_resultDT:
+    rows: list
+    summaries: list
 
     def to_dict(self) -> dict:
         return {

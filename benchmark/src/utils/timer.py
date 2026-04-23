@@ -1,7 +1,7 @@
 import time
 from contextlib import contextmanager
 
-from benchmark.src.datatypes.utils_dt import TimeStats
+from benchmark.src.datatypes.utils_dt import timeStats
 
 
 def now() -> float:
@@ -19,13 +19,13 @@ def timed():
 
 
 
-def summarize_time_measure(values: list[float]) -> TimeStats:
+def summarize_time_measure(values: list[float]) -> timeStats:
     """
         calcu mean, stdev, min, max for time measure
     """
     if len(values) == 1:
         single_value = values[0]
-        return TimeStats(
+        return timeStats(
             mean=single_value,
             stdev=0.0,
             min_value=single_value,
@@ -35,7 +35,7 @@ def summarize_time_measure(values: list[float]) -> TimeStats:
     average_value = sum(values) / len(values)
     variance = sum((value - average_value) ** 2 for value in values) / (len(values) - 1)
 
-    return TimeStats(
+    return timeStats(
         mean=average_value,
         stdev=variance ** 0.5,
         min_value=min(values),

@@ -2,7 +2,7 @@ from dataclasses import asdict, dataclass
 
 
 @dataclass
-class TimeStats:
+class timeStats:
     mean: float
     stdev: float
     min_value: float

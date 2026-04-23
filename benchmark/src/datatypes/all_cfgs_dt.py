@@ -5,14 +5,14 @@ from dataclasses import asdict, dataclass
 # >>>>>>>>>>>>>> baseline configs >>>>>>>>>>>>>>
 
 @dataclass
-class BaselineBenchConfig:
+class baselineBench_cfgDt:
     total_keys: int
     repeats: int = 5
 
 # >>>>>>>>>>>>>> batch configs >>>>>>>>>>>>>>
 
 @dataclass
-class BatchBenchConfig:
+class batchBench_cfgDt:
     total_keys: int
     n_parties: int
     batch_size: int
@@ -23,7 +23,7 @@ class BatchBenchConfig:
 # >>>>>>>>>>>>>> K of N configs >>>>>>>>>>>>>>
 
 @dataclass
-class KOfNBenchConfig:
+class KOfNBench_cfgDt:
     total_keys: int
     n_parties: int
     threshold_k: int
@@ -32,14 +32,14 @@ class KOfNBenchConfig:
 
 # >>>>>>>>>>>>>> OTS compare configs >>>>>>>>>>>>>>
 @dataclass
-class OtsCompareConfig:
+class otsCompare_cfgDt:
     total_keys: int
     n_parties: int
     repeats: int = 5
     w: int = 16
 
 @dataclass
-class WinternitzSweepConfig:
+class winternitzSweep_cfgDt:
     total_keys: int
     n_parties: int
     w_values: list[int]
@@ -48,7 +48,7 @@ class WinternitzSweepConfig:
 
 # >>>>>>>>>>>> threshold compare configs >>>>>>>>>>>>>>
 @dataclass
-class ThresholdBenchConfig:
+class thresholdBench_cfgDt:
     total_keys: int
     n_parties: int
     repeats: int = 5
@@ -59,24 +59,22 @@ class ThresholdBenchConfig:
 # >>>>>>>>>>>>>> compare configs >>>>>>>>>>>>>>
 
 @dataclass
-class KOfNCompareConfig:
+class KOfNCompare_cfgDt:
     total_keys: int
     n_parties: int
     k_values: list[int]
     repeats: int = 5
 
 
-
-
-
 @dataclass
-class CompareTotalKeysConfig:
+class compareTotalKeys_cfgDt:
     total_keys_list: list[int]
     repeats: int = 5
     n_parties: int = 3
 
+
 @dataclass
-class CompareNPartiesConfig:
+class compareNParties_cfgDt:
     total_keys: int
     n_parties_list: list[int]
     repeats: int = 5

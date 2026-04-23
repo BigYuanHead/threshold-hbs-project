@@ -17,8 +17,8 @@ from benchmark.src.utils.metrics import (
 from benchmark.src.bench_compare import compare_for_n_parties, compare_for_total_keys
 from benchmark.src.bench_kofn import benchmark_kofn_by_k, benchmark_kofn_failures
 from benchmark.src.bench_batch_threshold import (
-    benchmark_batch_by_size,
-    compare_batch_vs_nonbatch,
+    benchmark_batch_bySize,
+    compare_batch_vs_nonBatch,
     benchmark_batch_failures,
 )
 from benchmark.src.bench_ots_compare import (
@@ -27,43 +27,45 @@ from benchmark.src.bench_ots_compare import (
 )
 
 
-# This file runs all benchmark experiments and saves raw results, summaries, and plots.
-CONFIG = {
-    "repeats_main": 7,
-    "repeats_ext": 5,
+# >>>>>>>>>>>>>>> setup experiment config >>>>>>>>>>>>>>>>>
 
+from dataclasses import dataclass, field
+
+@dataclass
+class benchmark_exp_cfg:
+    repeats_main = 7
+    repeats_ext = 5
     # Exp A: total_keys scaling
-    "total_keys_values": [4, 8, 16, 32, 64, 128],
-    "total_keys_fixed_n_parties": 3,
-
+    total_keys_values = [4, 8, 16, 32, 64, 128]
+    total_keys_fixed_n_parties = 3
     # Exp B: n_parties scaling
-    "n_parties_values": [2, 3, 4, 5],
-    "n_parties_fixed_total_keys": 32,
-
+    n_parties_values = [2, 3, 4, 5]
+    n_parties_fixed_total_keys = 32
     # Exp C: k-of-n scaling
-    "kofn_total_keys": 16,
-    "kofn_n_parties": 4,
-    "kofn_k_values": [2, 3, 4],
-
+    kofn_total_keys = 16
+    kofn_n_parties = 4
+    kofn_k_values = [2, 3, 4]
     # Exp D: batch scaling
-    "batch_total_keys": 32,
-    "batch_n_parties": 3,
-    "batch_sizes": [2, 4, 8, 16, 32],
-    "batch_vs_nonbatch_message_count": 16,
-
+    batch_total_keys = 32
+    batch_n_parties = 3
+    batch_sizes = [2, 4, 8, 16, 32]
+    batch_vs_nonbatch_message_count = 16
     # Exp E: Lamport vs Winternitz
-    "ots_total_keys": 16,
-    "ots_n_parties": 3,
-    "ots_w": 16,
-    "ots_w_values": [4, 8, 16],
-}
+    ots_total_keys = 16
+    ots_n_parties = 3
+    ots_w = 16
+    ots_w_values = [4, 8, 16]
 
+CONFIG = benchmark_exp_cfg()
+
+
+# >>>>>>>>>>>>>> process logging >>>>>>>>>>>>>>
 
 def print_benchmark_overview(raw_dir: Path, summary_dir: Path, plots_dir: Path) -> None:
     print("\n" + ">>" * 20 + " Start running experiments " + ">>" * 20)
     print("Benchmark configuration loaded.")
-    print(f"Main experiment repeats: {CONFIG['repeats_main']}")
-    print(f"Extension experiment repeats: {CONFIG['repeats_ext']}")
+    print(f"Main experiment repeats: {CONFIG.repeats_main}")
+    print(f"Extension experiment repeats: {CONFIG.repeats_ext}")
     print("\nPlanned experiment groups:")
     print("  [1/6] Baseline vs threshold over total_keys")
     print("  [2/6] Threshold scaling with n_parties")
@@ -76,17 +78,17 @@ def print_benchmark_overview(raw_dir: Path, summary_dir: Path, plots_dir: Path) 
     print(f"\nPlots directory:\n{plots_dir.resolve()}")
 
 
-def print_stage_start(stage_no: int, title: str, description: str) -> None:
-    print(f"\n[{stage_no}/6] {title}")
+def print_stage_start(stage_no: int, title: str, description: str):
+    print(f"\n>>>>>>> [{stage_no}/6] {title}")
     print(f"  {description}")
 
 
 def print_stage_done(
     stage_no: int,
-    raw_paths: list[Path],
-    summary_paths: list[Path],
-    plot_paths: list[Path],
-) -> None:
+    raw_paths: list[Path] | None,
+    summary_paths: list[Path] | None,
+    plot_paths: list[Path] | None,
+):
     print(f"[{stage_no}/6] Completed")
     if raw_paths:
         print("  Raw output:")
@@ -119,6 +121,9 @@ def expName2files(exp_name: str, suffix: str = None) -> tuple[Path, Path, Path]:
 
 
 
+
+
+
 def runExp_totalKeys():
     """
         change total_keys
@@ -131,9 +136,9 @@ def runExp_totalKeys():
 
     # run
     compare_result = compare_for_total_keys(
-        total_keys_list = CONFIG["total_keys_values"],
-        repeats = CONFIG["repeats_main"],
-        n_parties = CONFIG["total_keys_fixed_n_parties"],
+        total_keys_list = CONFIG.total_keys_values,
+        repeats = CONFIG.repeats_main,
+        n_parties = CONFIG.total_keys_fixed_n_parties,
     )
     rows = compare_result.rows
     summaries = compare_result.summaries
@@ -141,7 +146,7 @@ def runExp_totalKeys():
     write_csv(rows, RAW_PATH)
     write_json(summaries, JSON_PATH)
 
-    # x: n_parties; y: setup_time, sign_time_mean, verify_time_mean, avg_signature_size
+    # x: total_keys; group by: benchmark_name; y: setup_time, sign_time_mean, verify_time_mean, avg_signature_size
     summary_df = save_summary(
         rows = rows,
         groupby_cols = ["benchmark_name", "total_keys"],
@@ -153,7 +158,7 @@ def runExp_totalKeys():
     if not relative_df.empty:
         relative_df.to_csv(RELATIVE_SUMMARY_PATH, index = False)
 
-    # plot
+    # x: total_keys; group by: benchmark_name; y: setup_time, sign_time_mean, verify_time_mean, avg_signature_size
     plot_multiLine_subplots(
         summary_df = summary_df,
         x_col = "total_keys",
@@ -169,6 +174,7 @@ def runExp_totalKeys():
         output_path = PLOTS_DIR / "exp_total_keys_2x2.png",
     )
 
+    # x: total_keys; y: setup_time_ratio, sign_time_ratio, verify_time_ratio, signature_size_ratio
     plot_multiLine_subplots(
         summary_df = relative_df,
         x_col = "total_keys",
@@ -196,9 +202,9 @@ def runExp_nParties():
 
     # run 
     compare_result = compare_for_n_parties(
-        total_keys = CONFIG["n_parties_fixed_total_keys"],
-        n_parties_list = CONFIG["n_parties_values"],
-        repeats = CONFIG["repeats_main"],
+        total_keys = CONFIG.n_parties_fixed_total_keys,
+        n_parties_list = CONFIG.n_parties_values,
+        repeats = CONFIG.repeats_main,
     )
     rows = compare_result.rows
     summaries = compare_result.summaries
@@ -241,20 +247,21 @@ def runExp_kofn():
                                                       suffix="failures")
 
     rows = benchmark_kofn_by_k(
-        total_keys = CONFIG["kofn_total_keys"],
-        n_parties = CONFIG["kofn_n_parties"],
-        k_values = CONFIG["kofn_k_values"],
-        repeats = CONFIG["repeats_ext"],
+        total_keys = CONFIG.kofn_total_keys,
+        n_parties = CONFIG.kofn_n_parties,
+        k_values = CONFIG.kofn_k_values,
+        repeats = CONFIG.repeats_ext,
     )
     failure_result = benchmark_kofn_failures(
         total_keys = 8,
-        n_parties = CONFIG["kofn_n_parties"],
+        n_parties = CONFIG.kofn_n_parties,
         threshold_k = 3,
     )
 
     write_csv(rows, RAW_PATH)
     write_json(failure_result, JSON_PATH)
 
+    # x: threshold_k; y: setup_time, sign_time_mean, verify_time_mean, avg_signature_size
     summary_df = save_summary(
         rows = rows,
         groupby_cols = ["threshold_k"],
@@ -262,6 +269,7 @@ def runExp_kofn():
         output_path = SUMMARY_PATH,
     )
 
+    # x: threshold_k; y: sign_time_mean, verify_time_mean, avg_signature_size
     plot_multiLine_subplots(
         summary_df = summary_df,
         x_col = "threshold_k",
@@ -290,21 +298,21 @@ def runExp_batch():
     EXP_COMPARE_NAME = "exp_batch_vs_nonbatch"
     COMPARE_RAW_PATH, COMPARE_SUMMARY_PATH, _ = expName2files(EXP_COMPARE_NAME)
 
-    batch_rows = benchmark_batch_by_size(
-        total_keys = CONFIG["batch_total_keys"],
-        n_parties = CONFIG["batch_n_parties"],
-        batch_sizes = CONFIG["batch_sizes"],
-        repeats = CONFIG["repeats_ext"],
+    batch_rows = benchmark_batch_bySize(
+        total_keys = CONFIG.batch_total_keys,
+        n_parties = CONFIG.batch_n_parties,
+        batch_sizes = CONFIG.batch_sizes,
+        repeats = CONFIG.repeats_ext,
     )
-    batch_vs_nonbatch_rows = compare_batch_vs_nonbatch(
-        total_keys = CONFIG["batch_total_keys"],
-        n_parties = CONFIG["batch_n_parties"],
-        message_count = CONFIG["batch_vs_nonbatch_message_count"],
-        repeats = CONFIG["repeats_ext"],
+    batch_vs_nonbatch_rows = compare_batch_vs_nonBatch(
+        total_keys = CONFIG.batch_total_keys,
+        n_parties = CONFIG.batch_n_parties,
+        message_count = CONFIG.batch_vs_nonbatch_message_count,
+        repeats = CONFIG.repeats_ext,
     )
     batch_failure_result = benchmark_batch_failures(
         total_keys = 16,
-        n_parties = CONFIG["batch_n_parties"],
+        n_parties = CONFIG.batch_n_parties,
         batch_size = 8,
     )
 
@@ -312,6 +320,7 @@ def runExp_batch():
     write_csv(batch_vs_nonbatch_rows, COMPARE_RAW_PATH)
     write_json(batch_failure_result, JSON_PATH)
 
+    # x: batch_size; y: batch_sign_time, total_batch_verify_time, per_message_sign_time, per_message_verify_time, batch_pack_size
     summary_df = save_summary(
         rows = batch_rows,
         groupby_cols = ["batch_size"],
@@ -325,6 +334,7 @@ def runExp_batch():
         output_path = SUMMARY_PATH,
     )
 
+    # x: benchmark_name; y: total_sign_time, total_verify_time, per_message_sign_time, per_message_verify_time, total_output_size, batch_sign_time, total_batch_verify_time, batch_pack_size
     save_summary(
         rows = batch_vs_nonbatch_rows,
         groupby_cols = ["benchmark_name"],
@@ -341,6 +351,7 @@ def runExp_batch():
         output_path = COMPARE_SUMMARY_PATH,
     )
 
+    # x: batch_size; y: batch_sign_time, per_message_sign_time, total_batch_verify_time, per_message_verify_time
     plot_multiLine_subplots(
         summary_df = summary_df,
         x_col = "batch_size",
@@ -368,15 +379,16 @@ def runExp_ots():
 
     # Compare Lamport and Winternitz under one fixed w.
     rows, summaries = benchmark_lamport_vs_winternitz(
-        total_keys = CONFIG["ots_total_keys"],
-        n_parties = CONFIG["ots_n_parties"],
-        w = CONFIG["ots_w"],
-        repeats = CONFIG["repeats_ext"],
+        total_keys = CONFIG.ots_total_keys,
+        n_parties = CONFIG.ots_n_parties,
+        w = CONFIG.ots_w,
+        repeats = CONFIG.repeats_ext,
     )
 
     write_csv(rows, RAW_PATH)
     write_json(summaries, JSON_PATH)
 
+    # x: ots_type; y: setup_time, sign_time_mean, verify_time_mean, avg_signature_size
     summary_df = save_summary(
         rows = rows,
         groupby_cols = ["ots_type"],
@@ -384,6 +396,7 @@ def runExp_ots():
         output_path = SUMMARY_PATH,
     )
 
+    # x: ots_type; y: setup_time_mean, sign_time_mean_mean, verify_time_mean_mean, avg_signature_size_mean
     plot_multiBar_subplots(
         summary_df = summary_df,
         x_col = "ots_type",
@@ -408,15 +421,16 @@ def runExp_winternitzW():
     RAW_PATH, SUMMARY_PATH, JSON_PATH = expName2files(EXP_NAME)
 
     rows, summaries = benchmark_winternitz_by_w(
-        total_keys = CONFIG["ots_total_keys"],
-        n_parties = CONFIG["ots_n_parties"],
-        w_values = CONFIG["ots_w_values"],
-        repeats = CONFIG["repeats_ext"],
+        total_keys = CONFIG.ots_total_keys,
+        n_parties = CONFIG.ots_n_parties,
+        w_values = CONFIG.ots_w_values,
+        repeats = CONFIG.repeats_ext,
     )
 
     write_csv(rows, RAW_PATH)
     write_json(summaries, JSON_PATH)
 
+    # x: w; y: setup_time, sign_time_mean, verify_time_mean, avg_signature_size
     summary_df = save_summary(
         rows = rows,
         groupby_cols = ["w"],
@@ -424,6 +438,7 @@ def runExp_winternitzW():
         output_path = SUMMARY_PATH,
     )
 
+    # x: w; y: setup_time_mean, sign_time_mean_mean, verify_time_mean_mean, avg_signature_size_mean
     plot_multiLine_subplots(
         summary_df = summary_df,
         x_col = "w",
@@ -454,15 +469,7 @@ def benchmark_main():
         "Variable: total_keys | Fixed: n_parties = 3",
     )
     runExp_totalKeys()
-    print_stage_done(
-        1,
-        [RAW_DIR / "exp_total_keys_raw.csv"],
-        [
-            SUMMARY_DIR / "exp_total_keys_summary.csv",
-            SUMMARY_DIR / "exp_total_keys_summary.json",
-        ],
-        [PLOTS_DIR / "exp_total_keys_2x2.png"],
-    )
+    print_stage_done(1, None, None, None)
 
     print_stage_start(
         2,
@@ -470,15 +477,8 @@ def benchmark_main():
         "Variable: n_parties | Fixed: total_keys = 32",
     )
     runExp_nParties()
-    print_stage_done(
-        2,
-        [RAW_DIR / "exp_n_parties_raw.csv"],
-        [
-            SUMMARY_DIR / "exp_n_parties_summary.csv",
-            SUMMARY_DIR / "exp_n_parties_summary.json",
-        ],
-        [PLOTS_DIR / "exp_n_parties_1x3.png"],
-    )
+    print_stage_done(2, None, None, None)
+
 
     print_stage_start(
         3,
@@ -486,15 +486,8 @@ def benchmark_main():
         "Variable: threshold_k | Fixed: n_parties = 4, total_keys = 16",
     )
     runExp_kofn()
-    print_stage_done(
-        3,
-        [RAW_DIR / "exp_kofn_raw.csv"],
-        [
-            SUMMARY_DIR / "exp_kofn_summary.csv",
-            SUMMARY_DIR / "exp_kofn_failures.json",
-        ],
-        [PLOTS_DIR / "exp_kofn_1x3.png"],
-    )
+    print_stage_done(3, None, None, None)
+
 
     print_stage_start(
         4,
@@ -502,19 +495,8 @@ def benchmark_main():
         "Variable: batch_size | Fixed: total_keys = 32, n_parties = 3",
     )
     runExp_batch()
-    print_stage_done(
-        4,
-        [
-            RAW_DIR / "exp_batch_scaling_raw.csv",
-            RAW_DIR / "exp_batch_vs_nonbatch_raw.csv",
-        ],
-        [
-            SUMMARY_DIR / "exp_batch_scaling_summary.csv",
-            SUMMARY_DIR / "exp_batch_vs_nonbatch_summary.csv",
-            SUMMARY_DIR / "exp_batch_failures.json",
-        ],
-        [PLOTS_DIR / "exp_batch_2x2.png"],
-    )
+    print_stage_done(4, None, None, None)
+
 
     print_stage_start(
         5,
@@ -522,15 +504,8 @@ def benchmark_main():
         "Variable: OTS type | Fixed: total_keys = 16, n_parties = 3, w = 16",
     )
     runExp_ots()
-    print_stage_done(
-        5,
-        [RAW_DIR / "exp_lamport_vs_winternitz_raw.csv"],
-        [
-            SUMMARY_DIR / "exp_lamport_vs_winternitz_summary.csv",
-            SUMMARY_DIR / "exp_lamport_vs_winternitz_summary.json",
-        ],
-        [PLOTS_DIR / "exp_ots_2x2.png"],
-    )
+    print_stage_done(5, None, None, None)
+
 
     print_stage_start(
         6,
@@ -538,15 +513,7 @@ def benchmark_main():
         "Variable: w | Fixed: total_keys = 16, n_parties = 3",
     )
     runExp_winternitzW()
-    print_stage_done(
-        6,
-        [RAW_DIR / "exp_winternitz_by_w_raw.csv"],
-        [
-            SUMMARY_DIR / "exp_winternitz_by_w_summary.csv",
-            SUMMARY_DIR / "exp_winternitz_by_w_summary.json",
-        ],
-        [PLOTS_DIR / "exp_winternitz_by_w_2x2.png"],
-    )
+    print_stage_done(6, None, None, None)
 
     print("\n" + "<<" * 20 + " Benchmark completed " + "<<" * 20)
     print(f"\nRaw results:\n{RAW_DIR.resolve()}")

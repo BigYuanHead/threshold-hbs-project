@@ -2,7 +2,7 @@ from dataclasses import asdict, dataclass
 
 
 @dataclass
-class BaselineBenchSummary:
+class baselineBench_sumDt:
     benchmark_name: str
     total_keys: int
     repeats: int
@@ -18,7 +18,7 @@ class BaselineBenchSummary:
     
 
 @dataclass
-class ThresholdBenchSummary:
+class thresholdBench_sumDt:
     benchmark_name: str
     total_keys: int
     n_parties: int
@@ -36,7 +36,7 @@ class ThresholdBenchSummary:
 
 
 @dataclass
-class KOfNBenchSummary:
+class KOfNBench_sumDt:
     benchmark_name: str
     total_keys: int
     n_parties: int
@@ -56,7 +56,7 @@ class KOfNBenchSummary:
 
 
 @dataclass
-class OtsBenchSummary:
+class otsBench_sumDt:
     benchmark_name: str
     ots_type: str
     total_keys: int
