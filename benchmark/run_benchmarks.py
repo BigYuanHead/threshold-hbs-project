@@ -446,7 +446,7 @@ def benchmark_main():
     # save exp config 
     write_json(CONFIG, SUMMARY_DIR / "benchmark_config.json")
 
-    print_benchmark_overview()
+    print_benchmark_overview(RAW_DIR, SUMMARY_DIR, PLOTS_DIR)
 
     print_stage_start(
         1,
