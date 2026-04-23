@@ -21,7 +21,7 @@ def timed():
 
 def summarize_time_measure(values: list[float]) -> TimeStats:
     """
-    calculate mean, stdev, min, max for time measurement in benchmarks
+        calcu mean, stdev, min, max for time measure
     """
     if len(values) == 1:
         single_value = values[0]

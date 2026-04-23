@@ -20,3 +20,4 @@ def make_dirs():
     summary_dir.mkdir(parents=True, exist_ok=True)
     plots_dir.mkdir(parents=True, exist_ok=True)
     return root, raw_dir, summary_dir, plots_dir
+
