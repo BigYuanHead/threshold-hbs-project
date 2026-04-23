@@ -8,20 +8,19 @@ This project implements a proof-of-concept threshold hash-based signature system
 The goal is to simulate a distributed signing setting where multiple parties collaboratively produce a valid signature without any single party holding the full signing capability.
 
 The implementation includes:
+- Cryptographic primitives and utility functions
 - Lamport signature core
-- Additive secret sharing
+- Merkle tree construction
+- Baseline stateful HBS workflow
+- Threshold setup and additive secret sharing
 - Distributed signing workflow
+- Signature share combination
 - Signature verification
+- Distributed role separation for trusted server, parties, untrusted server, and verifier
+- Extension 1 for k-of-n threshold construction
+- Extension 3 for batch signing
+- Extension 5 for Winternitz support
 - Benchmarking under different settings
-
----
-
-## Team Members
-- Member 1: Lamport signature core, verification
-- Member 2: Secret sharing and key distribution
-- Member 3: Distributed signing workflow
-- Member 4: Benchmarking, testing, documentation
-
 ---
 
 ## Project Structure
