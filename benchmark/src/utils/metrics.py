@@ -10,9 +10,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 
-# -----------------------------
-# basic helpers
-# -----------------------------
+# ------------ helpers ------------
 def digest32(data: bytes) -> bytes:
     return hashlib.sha256(data).digest()
 
@@ -32,6 +30,17 @@ def stdev(values: Iterable[float]) -> float:
 
 
 def summarise_times(values: list[float], prefix: str) -> dict:
+    """
+        summarize time with mean, stdev, min, max
+
+        @return:
+        {
+            f"{prefix}_mean": ...,
+            f"{prefix}_stdev": ...,
+            f"{prefix}_min": ...,
+            f"{prefix}_max": ...,
+        }      
+    """
     return {
         f"{prefix}_mean": mean(values),
         f"{prefix}_stdev": stdev(values),
@@ -40,10 +49,9 @@ def summarise_times(values: list[float], prefix: str) -> dict:
     }
 
 
-# -----------------------------
-# file writing
-# -----------------------------
-def write_csv(rows: list[dict], output_path: str | Path) -> None:
+# ------------ file writing ------------
+
+def write_csv(rows: list[dict], output_path: str | Path):
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -58,15 +66,13 @@ def write_csv(rows: list[dict], output_path: str | Path) -> None:
         writer.writerows(rows)
 
 
-def write_json(obj, output_path: str | Path) -> None:
+def write_json(obj, output_path: str | Path):
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(obj, indent=2), encoding="utf-8")
 
 
-# -----------------------------
-# dataframe + aggregation
-# -----------------------------
+#  ------------ dataframe and aggregate Opts ------------
 def rows_to_df(rows: list[dict]) -> pd.DataFrame:
     if not rows:
         return pd.DataFrame()
@@ -110,16 +116,17 @@ def save_summary(
     return summary
 
 
-# -----------------------------
-# plotting helpers
-# -----------------------------
-def ensure_plot_dir(path: str | Path) -> Path:
+
+
+
+# ------------ plot helper ------------
+def ensure_plotDir(path: str | Path) -> Path:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     return path
 
 
-def plot_line_from_summary(
+def plot_line_fromSummary(
     summary_df: pd.DataFrame,
     x_col: str,
     y_mean_col: str,
@@ -129,8 +136,8 @@ def plot_line_from_summary(
     xlabel: str,
     ylabel: str,
     output_path: str | Path,
-) -> None:
-    output_path = ensure_plot_dir(output_path)
+):
+    output_path = ensure_plotDir(output_path)
     plt.figure(figsize=(8, 5))
 
     if summary_df.empty:
@@ -167,7 +174,7 @@ def plot_line_from_summary(
     plt.close()
 
 
-def plot_grouped_bar_from_summary(
+def plot_groupedBar_fromSummary(
     summary_df: pd.DataFrame,
     x_col: str,
     y_mean_col: str,
@@ -176,8 +183,8 @@ def plot_grouped_bar_from_summary(
     xlabel: str,
     ylabel: str,
     output_path: str | Path,
-) -> None:
-    output_path = ensure_plot_dir(output_path)
+):
+    output_path = ensure_plotDir(output_path)
     plt.figure(figsize=(9, 5))
 
     if summary_df.empty:
@@ -201,14 +208,14 @@ def plot_grouped_bar_from_summary(
     plt.close()
 
 
-def plot_overall_comparison(
+def plot_overallCompare(
     rows: list[dict],
     scheme_col: str,
     metric_cols: list[str],
     output_path: str | Path,
     title: str = "Overall Comparison",
-) -> None:
-    output_path = ensure_plot_dir(output_path)
+):
+    output_path = ensure_plotDir(output_path)
     df = rows_to_df(rows)
 
     if df.empty:
@@ -243,13 +250,13 @@ def plot_overall_comparison(
 
 
 
-def plot_ots_comparison_2x2(
+def plot_ots_compare2x2(
     summary_df,
     x_col: str,
     output_path,
     title: str = "Lamport vs Winternitz Comparison",
 ):
-    output_path = ensure_plot_dir(output_path)
+    output_path = ensure_plotDir(output_path)
 
     fig, axes = plt.subplots(2, 2, figsize=(10, 8))
     axes = axes.flatten()
@@ -285,7 +292,7 @@ def plot_ots_comparison_2x2(
 
 
 
-def plot_multi_line_subplots(
+def plot_multiLine_subplots(
     summary_df: pd.DataFrame,
     x_col: str,
     group_col: str | None,
@@ -300,7 +307,7 @@ def plot_multi_line_subplots(
     @ metrics format:
         [ (y_mean_col, ylabel, y_std_col_or_None), ... ]
     """
-    output_path = ensure_plot_dir(output_path)
+    output_path = ensure_plotDir(output_path)
     rows, cols = layout
     fig, axes = plt.subplots(rows, cols, figsize=(5 * cols, 4 * rows))
     axes = axes.flatten() if hasattr(axes, "flatten") else [axes]
@@ -348,7 +355,7 @@ def plot_multi_line_subplots(
     plt.close()
 
 
-def plot_multi_bar_subplots(
+def plot_multiBar_subplots(
     summary_df: pd.DataFrame,
     x_col: str,
     metrics: list[tuple[str, str]],
@@ -362,7 +369,7 @@ def plot_multi_bar_subplots(
     @ metrics format
         [ (y_mean_col, ylabel), ... ]
     """
-    output_path = ensure_plot_dir(output_path)
+    output_path = ensure_plotDir(output_path)
     rows, cols = layout
     fig, axes = plt.subplots(rows, cols, figsize=(5 * cols, 4 * rows))
     axes = axes.flatten() if hasattr(axes, "flatten") else [axes]

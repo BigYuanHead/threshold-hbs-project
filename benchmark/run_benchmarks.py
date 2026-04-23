@@ -9,8 +9,8 @@ from benchmark.src.utils.metrics import (
     write_csv,
     write_json,
     save_summary,
-    plot_multi_line_subplots,
-    plot_multi_bar_subplots
+    plot_multiLine_subplots,
+    plot_multiBar_subplots
 )
 
 from benchmark.src.bench_compare import compare_for_n_parties, compare_for_total_keys
@@ -61,7 +61,7 @@ CONFIG = {
 
 
 
-def run_experiment_total_keys(raw_dir: Path, summary_dir: Path, plots_dir: Path):
+def runExp_totalKeys(raw_dir: Path, summary_dir: Path, plots_dir: Path):
     rows_bundle = compare_for_total_keys(
         total_keys_list=CONFIG["total_keys_values"],
         repeats=CONFIG["repeats_main"],
@@ -84,7 +84,7 @@ def run_experiment_total_keys(raw_dir: Path, summary_dir: Path, plots_dir: Path)
         output_path=summary_path,
     )
 
-    plot_multi_line_subplots(
+    plot_multiLine_subplots(
     summary_df=summary_df,
     x_col="total_keys",
     group_col="scheme",
@@ -100,7 +100,7 @@ def run_experiment_total_keys(raw_dir: Path, summary_dir: Path, plots_dir: Path)
 )
 
 
-def run_experiment_n_parties(raw_dir: Path, summary_dir: Path, plots_dir: Path):
+def runExp_N_parties(raw_dir: Path, summary_dir: Path, plots_dir: Path):
     rows_bundle = compare_for_n_parties(
         total_keys=CONFIG["n_parties_fixed_total_keys"],
         n_parties_list=CONFIG["n_parties_values"],
@@ -123,7 +123,7 @@ def run_experiment_n_parties(raw_dir: Path, summary_dir: Path, plots_dir: Path):
         output_path=summary_path,
     )
 
-    plot_multi_line_subplots(
+    plot_multiLine_subplots(
         summary_df=summary_df,
         x_col="n_parties",
         group_col=None,
@@ -138,7 +138,7 @@ def run_experiment_n_parties(raw_dir: Path, summary_dir: Path, plots_dir: Path):
     )
 
 
-def run_experiment_kofn(raw_dir: Path, summary_dir: Path, plots_dir: Path):
+def runExp_kofn(raw_dir: Path, summary_dir: Path, plots_dir: Path):
     rows = benchmark_kofn_by_k(
         total_keys=CONFIG["kofn_total_keys"],
         n_parties=CONFIG["kofn_n_parties"],
@@ -165,7 +165,7 @@ def run_experiment_kofn(raw_dir: Path, summary_dir: Path, plots_dir: Path):
         output_path=summary_path,
     )
 
-    plot_multi_line_subplots(
+    plot_multiLine_subplots(
         summary_df=summary_df,
         x_col="threshold_k",
         group_col=None,
@@ -180,7 +180,7 @@ def run_experiment_kofn(raw_dir: Path, summary_dir: Path, plots_dir: Path):
     )
 
 
-def run_experiment_winternitz_w(raw_dir: Path, summary_dir: Path, plots_dir: Path):
+def runExp_winternitz_W(raw_dir: Path, summary_dir: Path, plots_dir: Path):
     rows = benchmark_winternitz_by_w(
         total_keys=CONFIG["ots_total_keys"],
         n_parties=CONFIG["ots_n_parties"],
@@ -200,7 +200,7 @@ def run_experiment_winternitz_w(raw_dir: Path, summary_dir: Path, plots_dir: Pat
         output_path=summary_path,
     )
 
-    plot_multi_line_subplots(
+    plot_multiLine_subplots(
         summary_df=summary_df,
         x_col="w",
         group_col=None,
@@ -216,7 +216,7 @@ def run_experiment_winternitz_w(raw_dir: Path, summary_dir: Path, plots_dir: Pat
     )
 
 
-def run_experiment_batch(raw_dir: Path, summary_dir: Path, plots_dir: Path):
+def runExp_batch(raw_dir: Path, summary_dir: Path, plots_dir: Path):
     batch_rows = benchmark_batch_by_size(
         total_keys=CONFIG["batch_total_keys"],
         n_parties=CONFIG["batch_n_parties"],
@@ -274,7 +274,7 @@ def run_experiment_batch(raw_dir: Path, summary_dir: Path, plots_dir: Path):
         output_path=compare_summary_path,
     )
 
-    plot_multi_line_subplots(
+    plot_multiLine_subplots(
         summary_df=summary_df,
         x_col="batch_size",
         group_col=None,
@@ -292,7 +292,7 @@ def run_experiment_batch(raw_dir: Path, summary_dir: Path, plots_dir: Path):
 
 
 
-def run_experiment_ots(raw_dir: Path, summary_dir: Path, plots_dir: Path):
+def runExp_ots(raw_dir: Path, summary_dir: Path, plots_dir: Path):
     rows = benchmark_lamport_vs_winternitz(
         total_keys=CONFIG["ots_total_keys"],
         n_parties=CONFIG["ots_n_parties"],
@@ -312,7 +312,7 @@ def run_experiment_ots(raw_dir: Path, summary_dir: Path, plots_dir: Path):
         output_path=summary_path,
     )
 
-    plot_multi_bar_subplots(
+    plot_multiBar_subplots(
         summary_df=summary_df,
         x_col="ots_type",
         metrics=[
@@ -335,11 +335,11 @@ def benchmark_main():
     write_json(CONFIG, summary_dir / "benchmark_config.json")
 
     print("\n" + ">>" * 20 + " Start running experiments " + ">>" * 20)
-    run_experiment_total_keys(raw_dir, summary_dir, plots_dir)
+    runExp_totalKeys(raw_dir, summary_dir, plots_dir)
     run_experiment_n_parties(raw_dir, summary_dir, plots_dir)
     run_experiment_kofn(raw_dir, summary_dir, plots_dir)
     run_experiment_batch(raw_dir, summary_dir, plots_dir)
-    run_experiment_ots(raw_dir, summary_dir, plots_dir)
+    runExp_ots(raw_dir, summary_dir, plots_dir)
     run_experiment_winternitz_w(raw_dir, summary_dir, plots_dir)
 
     print( "\n" + "<<"*20 + " Benchmark completed " + "<<"*20)
