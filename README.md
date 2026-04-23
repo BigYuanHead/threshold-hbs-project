@@ -52,13 +52,6 @@ project/
 │   ├── bench_sign.py
 │   ├── bench_verify.py
 │   └── bench_scaling.py
-├── test/
-│   ├── test_lamport.py
-│   ├── test_share.py
-│   ├── test_signing.py
-│   ├── test_verification.py
-│   ├── test_end_to_end.py
-│   └── test_threshold_end_to_end.py
 │── extension_1/
 │   ├── kofn_party.py
 │   ├── kofn_sercer.py
