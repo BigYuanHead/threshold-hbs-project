@@ -57,6 +57,49 @@ CONFIG = {
 }
 
 
+def print_benchmark_overview(raw_dir: Path, summary_dir: Path, plots_dir: Path) -> None:
+    print("\n" + ">>" * 20 + " Start running experiments " + ">>" * 20)
+    print("Benchmark configuration loaded.")
+    print(f"Main experiment repeats: {CONFIG['repeats_main']}")
+    print(f"Extension experiment repeats: {CONFIG['repeats_ext']}")
+    print("\nPlanned experiment groups:")
+    print("  [1/6] Baseline vs threshold over total_keys")
+    print("  [2/6] Threshold scaling with n_parties")
+    print("  [3/6] k-of-n scaling with threshold_k")
+    print("  [4/6] Batch signing evaluation")
+    print("  [5/6] Lamport vs Winternitz comparison")
+    print("  [6/6] Winternitz scaling with w")
+    print(f"\nRaw results directory:\n{raw_dir.resolve()}")
+    print(f"\nSummary results directory:\n{summary_dir.resolve()}")
+    print(f"\nPlots directory:\n{plots_dir.resolve()}")
+
+
+def print_stage_start(stage_no: int, title: str, description: str) -> None:
+    print(f"\n[{stage_no}/6] {title}")
+    print(f"  {description}")
+
+
+def print_stage_done(
+    stage_no: int,
+    raw_paths: list[Path],
+    summary_paths: list[Path],
+    plot_paths: list[Path],
+) -> None:
+    print(f"[{stage_no}/6] Completed")
+    if raw_paths:
+        print("  Raw output:")
+        for path in raw_paths:
+            print(f"    - {path.resolve()}")
+    if summary_paths:
+        print("  Summary output:")
+        for path in summary_paths:
+            print(f"    - {path.resolve()}")
+    if plot_paths:
+        print("  Plot output:")
+        for path in plot_paths:
+            print(f"    - {path.resolve()}")
+
+
 
 def runExp_totalKeys(raw_dir: Path, summary_dir: Path, plots_dir: Path) -> None:
     compare_result = compare_for_total_keys(
@@ -337,13 +380,107 @@ def benchmark_main() -> None:
 
     write_json(CONFIG, summary_dir / "benchmark_config.json")
 
-    print("\n" + ">>" * 20 + " Start running experiments " + ">>" * 20)
+    print_benchmark_overview(raw_dir, summary_dir, plots_dir)
+
+    print_stage_start(
+        1,
+        "Baseline vs threshold over total_keys",
+        "Variable: total_keys | Fixed: n_parties = 3",
+    )
     runExp_totalKeys(raw_dir, summary_dir, plots_dir)
+    print_stage_done(
+        1,
+        [raw_dir / "exp_total_keys_raw.csv"],
+        [
+            summary_dir / "exp_total_keys_summary.csv",
+            summary_dir / "exp_total_keys_summary.json",
+        ],
+        [plots_dir / "exp_total_keys_2x2.png"],
+    )
+
+    print_stage_start(
+        2,
+        "Threshold scaling with n_parties",
+        "Variable: n_parties | Fixed: total_keys = 32",
+    )
     runExp_nParties(raw_dir, summary_dir, plots_dir)
+    print_stage_done(
+        2,
+        [raw_dir / "exp_n_parties_raw.csv"],
+        [
+            summary_dir / "exp_n_parties_summary.csv",
+            summary_dir / "exp_n_parties_summary.json",
+        ],
+        [plots_dir / "exp_n_parties_1x3.png"],
+    )
+
+    print_stage_start(
+        3,
+        "k-of-n scaling",
+        "Variable: threshold_k | Fixed: n_parties = 4, total_keys = 16",
+    )
     runExp_kofn(raw_dir, summary_dir, plots_dir)
+    print_stage_done(
+        3,
+        [raw_dir / "exp_kofn_raw.csv"],
+        [
+            summary_dir / "exp_kofn_summary.csv",
+            summary_dir / "exp_kofn_failures.json",
+        ],
+        [plots_dir / "exp_kofn_1x3.png"],
+    )
+
+    print_stage_start(
+        4,
+        "Batch signing evaluation",
+        "Variable: batch_size | Fixed: total_keys = 32, n_parties = 3",
+    )
     runExp_batch(raw_dir, summary_dir, plots_dir)
+    print_stage_done(
+        4,
+        [
+            raw_dir / "exp_batch_scaling_raw.csv",
+            raw_dir / "exp_batch_vs_nonbatch_raw.csv",
+        ],
+        [
+            summary_dir / "exp_batch_scaling_summary.csv",
+            summary_dir / "exp_batch_vs_nonbatch_summary.csv",
+            summary_dir / "exp_batch_failures.json",
+        ],
+        [plots_dir / "exp_batch_2x2.png"],
+    )
+
+    print_stage_start(
+        5,
+        "Lamport vs Winternitz comparison",
+        "Variable: OTS type | Fixed: total_keys = 16, n_parties = 3, w = 16",
+    )
     runExp_ots(raw_dir, summary_dir, plots_dir)
+    print_stage_done(
+        5,
+        [raw_dir / "exp_lamport_vs_winternitz_raw.csv"],
+        [
+            summary_dir / "exp_lamport_vs_winternitz_summary.csv",
+            summary_dir / "exp_lamport_vs_winternitz_summary.json",
+        ],
+        [plots_dir / "exp_ots_2x2.png"],
+    )
+
+    print_stage_start(
+        6,
+        "Winternitz scaling with w",
+        "Variable: w | Fixed: total_keys = 16, n_parties = 3",
+    )
     runExp_winternitzW(raw_dir, summary_dir, plots_dir)
+    print_stage_done(
+        6,
+        [raw_dir / "exp_winternitz_by_w_raw.csv"],
+        [
+            summary_dir / "exp_winternitz_by_w_summary.csv",
+            summary_dir / "exp_winternitz_by_w_summary.json",
+        ],
+        [plots_dir / "exp_winternitz_by_w_2x2.png"],
+    )
 
     print("\n" + "<<" * 20 + " Benchmark completed " + "<<" * 20)
     print(f"\nRaw results:\n{raw_dir.resolve()}")
